@@ -21,6 +21,19 @@ goog.require('olcs.core.OLImageryProvider');
    */
   olcs.core.glAliasedLineWidthRange = -1;
 
+  /**
+   * Get 3D positiion of the point a the bottom-center of the screen.
+   * @param {!Cesium.Scene} scene
+   * @return {!Cesium.Cartesian3|undefined}
+   * @api
+   */
+  olcs.core.pickBottomPoint = function(scene) {
+    var canvas = scene.canvas;
+    var bottom = new Cesium.Cartesian2(canvas.width / 2, canvas.height);
+    var ray = scene.camera.getPickRay(bottom);
+    var target = scene.globe.pick(ray, scene);
+    return target;
+  };
 
   /**
    * Rotate the camera so that its direction goes through the target point.
