@@ -285,8 +285,9 @@ var csWMSBase = new Cesium.WebMapServiceImageryProvider({
 
 var csWMSOverlay = new Cesium.WebMapServiceImageryProvider({
   url: '//mf-chmobil2.dev.bgdi.ch/~ochriste/wms?mynocache',
-  layers: 'WanderlandEtappenNational',
+  layers: 'WanderlandAll',
   rectangle: rectangle,
+  maximumLevel: 15,
   parameters: {
 	 format: 'image/png'
   },
