@@ -378,6 +378,7 @@ var csWMSOverlay = new Cesium.WebMapServiceImageryProvider({
   url: '//mf-chmobil2.dev.bgdi.ch/~ochriste/wms?mynocache',
   layers: layerName,
   rectangle: rectangle,
+  maximumLevel: 15,
   parameters: {
     format: 'image/png'
   },
