@@ -2,6 +2,7 @@
 
 //'Wanderwegnetz,WanderlandEtappenRegional,WanderlandEtappenLokal,WanderlandEtappenNational'
 var layerName = 'WanderlandAll';
+var useCustomSynchronizer = false;
 
 // By default OpenLayers does not know about the EPSG:21781 (Swiss) projection.
 // So we create a projection instance for EPSG:21781 and pass it to
@@ -65,7 +66,7 @@ var layers = [
       },
       serverType: 'mapserver'
     })
-  })//, olOverlayWander
+  }), olOverlayWander
 ];
 
 
@@ -385,21 +386,23 @@ var csWMSOverlay = new Cesium.WebMapServiceImageryProvider({
   credit: 'Schweizmobil Wanderland'
 });
 
-//var ol3d = new olcs.OLCesium(map, 'map3d');
-//var scene = ol3d.getCesiumScene();
-//scene.imageryLayers.removeAll();
-//scene.imageryLayers.addImageryProvider(csWMSBase);
-//ol3d.setEnabled(true);
+if (useCustomSynchronizer) {
+  var viewer = new Cesium.CesiumWidget('map3d', {
+    scene3DOnly: true,
+    imageryProvider: csWMSBase
+  });
+  var scene = viewer.scene;
+  var vectorSynchronizer = new olcs.VectorSynchronizer(map, scene);
+  vectorSynchronizer.synchronize();
+} else {
+  var ol3d = new olcs.OLCesium(map, 'map3d');
+  var scene = ol3d.getCesiumScene();
+  scene.imageryLayers.removeAll();
+  scene.imageryLayers.addImageryProvider(csWMSBase);
+  ol3d.setEnabled(true);
+}
 
-var viewer = new Cesium.CesiumWidget('map3d', {
-  scene3DOnly: true,
-  imageryProvider: csWMSBase
-});
-var scene = viewer.scene;
-var vectorSynchronizer = new olcs.VectorSynchronizer(map, scene);
-vectorSynchronizer.synchronize();
-
-//scene.imageryLayers.addImageryProvider(csWMSOverlay);
+scene.imageryLayers.addImageryProvider(csWMSOverlay);
 scene.terrainProvider = terrainProvider;
 scene.globe.depthTestAgainstTerrain = true;
 
