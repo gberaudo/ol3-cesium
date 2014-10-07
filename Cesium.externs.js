@@ -227,7 +227,7 @@ Cesium.Camera = function() {};
 
 
 /**
- * @type {Cesium.Cartesian3}
+ * @type {!Cesium.Cartesian3}
  */
 Cesium.Camera.prototype.direction;
 
@@ -239,13 +239,13 @@ Cesium.Camera.prototype.frustum;
 
 
 /**
- * @type {Cesium.Cartesian3}
+ * @type {!Cesium.Cartesian3}
  */
 Cesium.Camera.prototype.position;
 
 
 /**
- * @type {Cesium.Cartesian3}
+ * @type {!Cesium.Cartesian3}
  */
 Cesium.Camera.prototype.right;
 
@@ -257,7 +257,7 @@ Cesium.Camera.prototype.transform;
 
 
 /**
- * @type {Cesium.Cartesian3}
+ * @type {!Cesium.Cartesian3}
  */
 Cesium.Camera.prototype.up;
 
@@ -641,6 +641,14 @@ Cesium.Cartesian3.cross = function(left, right, opt_result) {};
 
 
 /**
+ * @param {!Cesium.Cartesian3} cartesian
+ * @param {Cesium.Cartesian3=} opt_result
+ * @return {!Cesium.Cartesian3}
+ */
+Cesium.Cartesian3.clone = function(cartesian, opt_result) {};
+
+
+/**
  * @param {Cesium.Cartesian3} left
  * @param {Cesium.Cartesian3} right
  * @return {number}
@@ -743,9 +751,15 @@ Cesium.Cartographic.fromDegrees = function(lat, lng) {};
 
 /**
  * @constructor
+ * @param {!Cesium.Cartesian3|undefined} opt_origin
+ * @param {!Cesium.Cartesian3|undefined} opt_direction
  */
-Cesium.Ray = function() {};
+Cesium.Ray = function(opt_origin, opt_direction) {};
 
+/**
+ * @type {!Cesium.Cartesian3}
+ */
+Cesium.Ray.prototype.direction;
 
 /**
  * @constructor
