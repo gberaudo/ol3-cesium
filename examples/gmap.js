@@ -1,5 +1,8 @@
 //Base on http://openlayers.org/en/v3.0.0/examples/wms-custom-proj.js
 
+//'Wanderwegnetz,WanderlandEtappenRegional,WanderlandEtappenLokal,WanderlandEtappenNational'
+var layerName = 'WanderlandAll';
+
 // By default OpenLayers does not know about the EPSG:21781 (Swiss) projection.
 // So we create a projection instance for EPSG:21781 and pass it to
 // ol.proj.addProjection to make it available to the library.
@@ -32,6 +35,21 @@ ol.proj.addCoordinateTransforms('EPSG:4326', projection,
     });
 
 var extent = [420000, 30000, 900000, 350000];
+var olOverlayWander = new ol.layer.Tile({
+    extent: extent,
+    source: new ol.source.TileWMS({
+      url: '//mf-chmobil2.dev.bgdi.ch/~ochriste/wms?mynocache',
+      attributions: [new ol.Attribution({
+        html: '&copy; Geoadmin'
+      })],
+      params: {
+       'LAYERS': layerName,
+       'FORMAT': 'image/png'
+    },
+      serverType: 'mapserver'
+    })
+  });
+
 var layers = [
   new ol.layer.Tile({
     extent: extent,
@@ -47,24 +65,96 @@ var layers = [
       },
       serverType: 'mapserver'
     })
-  }),
-  new ol.layer.Tile({
-    extent: extent,
-    source: new ol.source.TileWMS({
-      url: '//mf-chmobil2.dev.bgdi.ch/~ochriste/wms?mynocache',
-      attributions: [new ol.Attribution({
-        html: '&copy; Geoadmin'
-      })],
-      params: {
-		  //'LAYERS': 'Wanderwegnetz,WanderlandEtappenRegional,WanderlandEtappenLokal,WanderlandEtappenNational'
-		  //'LAYERS': 'WanderlandAll',
-		  'LAYERS': 'WanderlandEtappenNational',
-		  'FORMAT': 'image/png'
-		},
-      serverType: 'mapserver'
-    })
-  })
+  })//, olOverlayWander
 ];
+
+
+
+
+var image = new ol.style.Circle({
+  radius: 5,
+  fill: null,
+  stroke: new ol.style.Stroke({color: 'red', width: 1})
+});
+
+
+var styles = {
+  'Point': [new ol.style.Style({
+    image: image
+  })],
+  'LineString': [new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: 'yellow',
+      width: 4
+
+    })
+  })],
+  'MultiLineString': [new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: 'green',
+      width: 1
+    })
+  })],
+  'MultiPoint': [new ol.style.Style({
+    image: image,
+    text: new ol.style.Text({
+      text: 'MP',
+      stroke: new ol.style.Stroke({
+        color: 'purple'
+      })
+    })
+  })],
+  'MultiPolygon': [new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: 'yellow',
+      width: 1
+    }),
+    fill: new ol.style.Fill({
+      color: 'rgba(255, 255, 0, 0.1)'
+    })
+  })],
+  'Polygon': [new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: 'blue',
+      lineDash: [4],
+      width: 3
+    }),
+    fill: new ol.style.Fill({
+      color: 'rgba(0, 0, 255, 0.1)'
+    })
+  })],
+  'GeometryCollection': [new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: 'magenta',
+      width: 2
+    }),
+    fill: new ol.style.Fill({
+      color: 'magenta'
+    }),
+    image: new ol.style.Circle({
+      radius: 10, // pixels
+      fill: null,
+      stroke: new ol.style.Stroke({
+        color: 'magenta'
+      })
+    })
+  })],
+  'Circle': [new ol.style.Style({
+    stroke: new ol.style.Stroke({
+      color: 'red',
+      width: 2
+    }),
+    fill: new ol.style.Fill({
+      color: 'rgba(255,0,0,0.2)'
+    })
+  })]
+};
+
+
+var styleFunction = function(feature, resolution) {
+    return styles[feature.getGeometry().getType()];
+};
+
 
 var dragAndDropInteraction = new ol.interaction.DragAndDrop({
   formatConstructors: [
@@ -104,6 +194,7 @@ dragAndDropInteraction.on('addfeatures', function(event) {
     features: event.features,
     projection: event.projection
   });
+  fixTrackInsideTerrain(vectorSource.getFeatures());
   map.getLayers().push(new ol.layer.Vector({
     source: vectorSource,
     style: styleFunction
@@ -285,28 +376,33 @@ var csWMSBase = new Cesium.WebMapServiceImageryProvider({
 
 var csWMSOverlay = new Cesium.WebMapServiceImageryProvider({
   url: '//mf-chmobil2.dev.bgdi.ch/~ochriste/wms?mynocache',
-  layers: 'WanderlandAll',
+  layers: layerName,
   rectangle: rectangle,
   maximumLevel: 15,
   parameters: {
-	 format: 'image/png'
+    format: 'image/png'
   },
   credit: 'Schweizmobil Wanderland'
 });
 
+//var ol3d = new olcs.OLCesium(map, 'map3d');
+//var scene = ol3d.getCesiumScene();
+//scene.imageryLayers.removeAll();
+//scene.imageryLayers.addImageryProvider(csWMSBase);
+//ol3d.setEnabled(true);
+
 var viewer = new Cesium.CesiumWidget('map3d', {
   scene3DOnly: true,
-  imageryProvider: csWMSBase,
-  //imageryProvider: csWMSOverlay,
- // terrainProvider: terrainProvider
-  // Use https://addons.mozilla.org/en-US/firefox/addon/referrer-control/
+  imageryProvider: csWMSBase
 });
-
-
 var scene = viewer.scene;
-scene.imageryLayers.addImageryProvider(csWMSOverlay);
+var vectorSynchronizer = new olcs.VectorSynchronizer(map, scene);
+vectorSynchronizer.synchronize();
+
+//scene.imageryLayers.addImageryProvider(csWMSOverlay);
 scene.terrainProvider = terrainProvider;
 scene.globe.depthTestAgainstTerrain = true;
+
 
 var position = map.getView().getCenter();
 position = ol.proj.transform(position, 'EPSG:21781', 'EPSG:4326');
@@ -328,4 +424,45 @@ function pickBottom(id) {
   carto.longitude *= 180 / Math.PI;
   carto.latitude *= 180 / Math.PI;
   element.innerHTML = carto;
+}
+
+function center() {
+  var position = map.getView().getCenter();
+  position = ol.proj.transform(position, 'EPSG:21781', 'EPSG:4326');
+  position[2] = 3000;
+  camera.flyTo({
+    'destination': Cesium.Cartesian3.fromDegrees.apply(this, position),
+    'duration': 0
+  });
+}
+
+function loadGpx(name) {
+  var source = new ol.source.GPX({
+    projection: projection,
+    url: 'data/' + name + '.gpx'
+  });
+  var vector = new ol.layer.Vector({
+    source: source,
+    style: styleFunction
+  });
+  map.getLayers().push(vector);
+  var key = source.on('change', function() {
+    if (!source.getState() == 'ready') return;
+    source.unByKey(key);
+    fixTrackInsideTerrain(source.getFeatures());
+    map.getView().fitExtent(source.getExtent(), map.getSize());
+  });
+}
+
+/**
+ * @param {!ol.Collection.<!ol.Feature>} features
+ */
+function fixTrackInsideTerrain(features) {
+  var geometry = features[0].getGeometry();
+  geometry.applyTransform(function(input, output, stride) {
+    if (stride < 3) return;
+    for (i = 0; i < input.length; i += stride) {
+      input[i + 2] = input[i + 2] + 51;
+    }
+  });
 }
