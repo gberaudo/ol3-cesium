@@ -1,8 +1,8 @@
 //Base on http://openlayers.org/en/v3.0.0/examples/wms-custom-proj.js
 
-//'Wanderwegnetz,WanderlandEtappenRegional,WanderlandEtappenLokal,WanderlandEtappenNational'
-var layerName = 'WanderlandAll';
+var layerName = 'Wanderwegnetz,WanderlandEtappenRegional,WanderlandEtappenLokal,WanderlandEtappenNational';
 var useCustomSynchronizer = false;
+var displayOverlay = true;
 
 // By default OpenLayers does not know about the EPSG:21781 (Swiss) projection.
 // So we create a projection instance for EPSG:21781 and pass it to
@@ -66,9 +66,12 @@ var layers = [
       },
       serverType: 'mapserver'
     })
-  }), olOverlayWander
+  })
 ];
 
+if (displayOverlay) {
+  layers.push(olOverlayWander);
+}
 
 
 
@@ -376,10 +379,10 @@ var csWMSBase = new Cesium.WebMapServiceImageryProvider({
 });
 
 var csWMSOverlay = new Cesium.WebMapServiceImageryProvider({
-  url: '//mf-chmobil2.dev.bgdi.ch/~ochriste/wms?mynocache',
+  url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
   layers: layerName,
   rectangle: rectangle,
-  maximumLevel: 15,
+//  maximumLevel: 15,
   parameters: {
     format: 'image/png'
   },
@@ -402,7 +405,9 @@ if (useCustomSynchronizer) {
   ol3d.setEnabled(true);
 }
 
-scene.imageryLayers.addImageryProvider(csWMSOverlay);
+if (displayOverlay) {
+  scene.imageryLayers.addImageryProvider(csWMSOverlay);
+}
 scene.terrainProvider = terrainProvider;
 scene.globe.depthTestAgainstTerrain = true;
 
