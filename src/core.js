@@ -21,8 +21,9 @@ goog.require('olcs.core.OLImageryProvider');
    */
   olcs.core.glAliasedLineWidthRange = -1;
 
+
   /**
-   * Get 3D positiion of the point a the bottom-center of the screen.
+   * Get 3D positiion of the point at the bottom-center of the screen.
    * @param {!Cesium.Scene} scene
    * @return {!Cesium.Cartesian3|undefined}
    * @api
@@ -34,6 +35,47 @@ goog.require('olcs.core.OLImageryProvider');
     var target = scene.globe.pick(ray, scene);
     return target;
   };
+
+
+  /**
+   * Get 3D positiion of the point at the center of the screen.
+   * @param {!Cesium.Scene} scene
+   * @return {!Cesium.Cartesian3|undefined}
+   * @api
+   */
+  olcs.core.pickCenterPoint = function(scene) {
+    var canvas = scene.canvas;
+    var bottom = new Cesium.Cartesian2(canvas.width / 2, canvas.height / 2);
+    var ray = scene.camera.getPickRay(bottom);
+    var target = scene.globe.pick(ray, scene);
+    return target;
+  };
+
+
+  /**
+   * Compute the signed tilt angle on globe, between the opposite of the
+   * camera direction and the target normal. Return undefined if there is no
+   * intersection of the camera direction with the globe.
+   * @param {!Cesium.Scene} scene
+   * @return {number|undefined}
+   * @api
+   */
+  olcs.core.computeSignedTiltAngleOnGlobe = function(scene) {
+    var camera = scene.camera;
+    var ray = new Cesium.Ray(camera.position, camera.direction);
+    var target = scene.globe.pick(ray, scene);
+    if (!target) {
+      return undefined;
+    }
+
+    var normal = new Cesium.Cartesian3();
+    Cesium.Ellipsoid.WGS84.geocentricSurfaceNormal(target, normal);
+
+    var angleBetween = olcs.core.signedAngleBetween;
+    var angle = angleBetween(camera.direction, normal, camera.right) - Math.PI;
+    return angle;
+  };
+
 
   /**
    * Compute the ray from the camera to the bottom-center of the screen.

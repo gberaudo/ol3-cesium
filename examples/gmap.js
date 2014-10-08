@@ -480,3 +480,62 @@ function fixTrackInsideTerrain(features) {
     }
   });
 }
+
+
+function toggle2D3D() {
+  var pivot = olcs.core.pickBottomPoint(scene);
+  var angleToZenith = olcs.core.computeAngleToZenith(scene, pivot);
+
+  var toRad = function(degree) {
+    return degree * Math.PI / 180;
+  };
+
+  var rotate = function(angle) {
+    var oldTransform = new Cesium.Matrix4();
+    Cesium.Matrix4.clone(camera.transform, oldTransform);
+    var iterations = 15;
+    var deltaAngle = - angle / iterations;
+    var animSpeed = 30;
+    var count = 0;
+    var id = setInterval(function() {
+        camera.setTransform(Cesium.Matrix4.fromTranslation(pivot));
+        camera.rotate(camera.right, deltaAngle);
+        camera.setTransform(oldTransform);
+        count++;
+        if (count == iterations) {
+            clearInterval(id);
+        }
+    }, animSpeed);
+  };
+  var epsilon = toRad(5);
+  var topAngle = 0;
+  var middleAngle = toRad(30);
+  var bottomAngle = toRad(80);
+  var tiltOnGlobe = olcs.core.computeSignedTiltAngleOnGlobe(scene);
+  if (!tiltOnGlobe) {
+    // When direction points the sky, going back to zenith.
+    rotate(angleToZenith);
+  } else if (epsilon - tiltOnGlobe < middleAngle) {
+    rotate(middleAngle + angleToZenith);
+  } else if (epsilon - tiltOnGlobe < bottomAngle) {
+    rotate(bottomAngle + angleToZenith);
+  } else {
+    rotate(angleToZenith);
+  }
+}
+
+function testRotation() {
+  //var pivot = olcs.core.pickCenterPoint(scene);
+  var pivot = olcs.core.pickBottomPoint(scene);
+  var carto = Cesium.Ellipsoid.WGS84.cartesianToCartographic(pivot);
+  carto.longitude *= 180 / Math.PI;
+  carto.latitude *= 180 / Math.PI;
+  console.log('toggle', carto);
+
+  var transform = Cesium.Matrix4.fromTranslation(pivot);
+  var oldTransform = new Cesium.Matrix4();
+  Cesium.Matrix4.clone(camera.transform, oldTransform);
+  camera.setTransform(transform);
+  scene.camera.rotate(camera.right, - 5 * Math.PI / 180);
+  camera.setTransform(oldTransform);
+}
