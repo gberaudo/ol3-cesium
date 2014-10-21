@@ -518,7 +518,7 @@ goog.require('olcs.core.OlLayerPrimitive');
    * @param {!ol.proj.ProjectionLike} projection
    * @param {!ol.style.Style} style
    * @param {!Cesium.BillboardCollection} billboards
-   * @return {Cesium.Primitive} primitives
+   * @return {Cesium.Primitive|Cesium.Billboard} primitives
    * @api
    */
   olcs.core.olPointGeometryToCesium = function(geometry, projection, style,
@@ -537,7 +537,7 @@ goog.require('olcs.core.OlLayerPrimitive');
     var reallyCreateBillboard = function() {
       if (goog.isNull(image) ||
           !(image instanceof HTMLCanvasElement || image instanceof Image)) {
-        return;
+        return null;
       }
       var center = geometry.getCoordinates();
       var position = olcs.core.ol4326CoordinateToCesiumCartesian(center);
@@ -547,8 +547,11 @@ goog.require('olcs.core.OlLayerPrimitive');
         position: position
       });
       bb.olFeatureId = featureId;
+      return bb;
     };
 
+    /** @type {Cesium.Billboard} */
+    var billboard = null;
     if (image instanceof Image && !isImageLoaded(image)) {
       // Cesium requires the image to be loaded
       var listener = function() {
@@ -557,13 +560,13 @@ goog.require('olcs.core.OlLayerPrimitive');
 
       goog.events.listenOnce(image, 'load', listener);
     } else {
-      reallyCreateBillboard();
+      billboard = reallyCreateBillboard();
     }
 
     if (style.getText()) {
       return addTextStyle(geometry, style, billboards);
     } else {
-      return null;
+      return billboard;
     }
   };
 
@@ -604,7 +607,7 @@ goog.require('olcs.core.OlLayerPrimitive');
             goog.asserts.assert(geometry);
             var result = fn(geometry, projection, olStyle, billboards,
                 featureId);
-            if (result) {
+            if (result && !(result instanceof Cesium.Billboard)) {
               primitives.add(result);
             }
           });
@@ -654,6 +657,7 @@ goog.require('olcs.core.OlLayerPrimitive');
 
     primitives.modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(
         position);
+
     var options = /** @type {Cesium.optionsLabelCollection} */ ({});
     options.text = text;
 
@@ -857,7 +861,7 @@ goog.require('olcs.core.OlLayerPrimitive');
         var bbs = context.billboards;
         var result = olcs.core.olPointGeometryToCesium(geom, proj, style, bbs,
             feature.getId());
-        if (!result) {
+        if (!result || result instanceof Cesium.Billboard) {
           // no wrapping primitive
           return null;
         } else {

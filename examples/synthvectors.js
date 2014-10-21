@@ -106,3 +106,18 @@ function clearFeatures() {
   total = 0;
   document.getElementById('total').innerHTML;
 }
+
+var removed;
+function removeOne() {
+  if (vectorArray.length > 0) {
+    removed = vectorArray[0].getSource().getFeatures()[0];
+    vectorArray[0].getSource().removeFeature(removed);
+  }
+}
+
+function addOne() {
+  if (removed && vectorArray.length > 0) {
+    vectorArray[0].getSource().addFeatures(removed);
+    removed = undefined;
+  }
+}

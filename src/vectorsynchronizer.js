@@ -94,7 +94,11 @@ olcs.VectorSynchronizer.prototype.createSingleCounterpart = function(olLayer) {
     var csPrimitive = featurePrimitiveMap[feature];
     delete featurePrimitiveMap[feature];
     goog.asserts.assert(goog.isDefAndNotNull(csPrimitive));
-    csPrimitives.remove(csPrimitive);
+    if (csPrimitive instanceof Cesium.Billboard) {
+      csPrimitives.context.billboards.remove(csPrimitive);
+    } else {
+      csPrimitives.remove(csPrimitive);
+    }
   };
 
   source.on('addfeature', function(e) {
