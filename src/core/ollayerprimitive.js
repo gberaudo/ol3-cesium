@@ -1,19 +1,6 @@
+goog.require('olcs.core.OlFeatureCounterpart');
+goog.require('olcs.core.OlLayerPrimitiveContext');
 goog.provide('olcs.core.OlLayerPrimitive');
-
-
-/**
- * Context for feature conversion.
- * @typedef {{
- *  projection: (!ol.proj.ProjectionLike),
- *  primitives: (!Cesium.PrimitiveCollection),
- *  featureToCesiumMap: (!Object.<
- *    !ol.Feature,
- *    !Cesium.Primitive|!Cesium.Billboard>),
- *  billboards: (!Cesium.BillboardCollection)
- * }}
- * @api
- */
-olcs.core.OlFeatureToCesiumContext;
 
 
 
@@ -26,15 +13,10 @@ olcs.core.OlFeatureToCesiumContext;
 olcs.core.OlLayerPrimitive = function(layerProjection) {
   goog.base(this);
 
-  /**
-    * @type {!olcs.core.OlFeatureToCesiumContext}
-    */
-  this.context = {
-    projection: layerProjection,
-    billboards: new Cesium.BillboardCollection(),
-    featureToCesiumMap: {},
-    primitives: new Cesium.PrimitiveCollection()
-  };
+  this.context = new olcs.core.OlLayerPrimitiveContext(layerProjection);
+  this.add(this.context.billboardCollection);
+  this.add(this.context.labelCollection);
+  this.add(this.context.primitives);
 };
 goog.inherits(olcs.core.OlLayerPrimitive, Cesium.PrimitiveCollection);
 
@@ -64,7 +46,12 @@ olcs.core.OlLayerPrimitive.prototype.convert = function(layer, view, feature) {
   }
 
   this.context.projection = proj;
-  return olcs.core.olFeatureToCesium(feature, style, this.context);
+  var counterpart = new olcs.core.OlFeatureCounterpart(
+      feature,
+      this.context.billboardCollection,
+      this.context.labelCollection
+      );
+  return olcs.core.olFeatureToCesium(feature, proj, style, counterpart);
 };
 
 
