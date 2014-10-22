@@ -188,6 +188,14 @@ olcs.OLCesium.prototype.getEnabled = function() {
   return this.enabled_;
 };
 
+/**
+ * @return {!Element}
+ * @api
+ */
+olcs.OLCesium.prototype.get3DContainer = function() {
+  return this.container_;
+};
+
 
 /**
  * Enables/disables the Cesium.
@@ -202,36 +210,10 @@ olcs.OLCesium.prototype.setEnabled = function(opt_enable) {
   // so we can't remove it from DOM or even make display:none;
   this.container_.style.visibility = this.enabled_ ? 'visible' : 'hidden';
   if (this.enabled_) {
-    if (this.isOverMap_) {
-      var interactions = this.map_.getInteractions();
-      interactions.forEach(function(el, i, arr) {
-        this.pausedInteractions_.push(el);
-      }, this);
-      interactions.clear();
-
-      var rootGroup = this.map_.getLayerGroup();
-      if (rootGroup.getVisible()) {
-        this.hiddenRootGroup_ = rootGroup;
-        this.hiddenRootGroup_.setVisible(false);
-      }
-    }
     this.handleResize_();
     this.camera_.readFromView();
     this.cesiumRenderingDelay_.start();
   } else {
-    if (this.isOverMap_) {
-      var interactions = this.map_.getInteractions();
-      goog.array.forEach(this.pausedInteractions_, function(el, i, arr) {
-        interactions.push(el);
-      }, this);
-      this.pausedInteractions_.length = 0;
-
-      if (!goog.isNull(this.hiddenRootGroup_)) {
-        this.hiddenRootGroup_.setVisible(true);
-        this.hiddenRootGroup_ = null;
-      }
-    }
-
     this.camera_.updateView();
     this.cesiumRenderingDelay_.stop();
   }
