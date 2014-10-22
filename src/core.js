@@ -78,7 +78,7 @@ goog.require('olcs.core.OLImageryProvider');
 
     var angleBetween = olcs.core.signedAngleBetween;
     var angle = angleBetween(camera.direction, normal, camera.right) - Math.PI;
-    return angle;
+    return Cesium.Math.convertLongitudeRange(angle);
   };
 
 
