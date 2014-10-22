@@ -33,6 +33,11 @@ goog.require('olcs.core.OLImageryProvider');
     var bottom = new Cesium.Cartesian2(canvas.width / 2, canvas.height);
     var ray = scene.camera.getPickRay(bottom);
     var target = scene.globe.pick(ray, scene);
+/*
+    if (!target) {
+      target = scene.camera.pickEllipsoid(bottom);
+    }
+*/
     return target;
   };
 
@@ -130,6 +135,7 @@ goog.require('olcs.core.OLImageryProvider');
    * The bottom-center of the screen is a good candidate for the pivot point.
    * @param {!Cesium.Scene} scene
    * @param {!Cesium.Cartesian3} pivot Point around which the camera rotates.
+   * @api
    */
   olcs.core.computeAngleToZenith = function(scene, pivot) {
     // This angle is the sum of the angles 'fy' and 'a', which are defined

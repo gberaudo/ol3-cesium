@@ -1,5 +1,6 @@
 var iconFeature = new ol.Feature({
-  geometry: new ol.geom.Point([700000, 200000, 100000]),
+  //geometry: new ol.geom.Point([700000, 200000, 100000]),
+  geometry: new ol.geom.Point([824602.66, 5779327.27])
 });
 
 var iconStyle = new ol.style.Style({
@@ -39,9 +40,9 @@ var styles = {
   })],
   'LineString': [new ol.style.Style({
     stroke: new ol.style.Stroke({
-      color: 'green',
-      lineDash: [4],
-      width: 1
+      color: 'red',
+      lineDash: [0.001, 35],
+      width: 8
     })
   })],
   'MultiLineString': [new ol.style.Style({
@@ -124,7 +125,7 @@ var vectorSource = new ol.source.GeoJSON(
             'type': 'Feature',
             'geometry': {
               'type': 'Point',
-              'coordinates': [0, 0, 1e5]
+              'coordinates': [649198, 143940]
             }
           },
           {
