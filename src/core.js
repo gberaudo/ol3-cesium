@@ -693,6 +693,7 @@ goog.require('olcs.core.OLImageryProvider');
       billboards.add({
         // always update Cesium externs before adding a property
         image: image,
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
         position: position
       });
     };
