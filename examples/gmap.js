@@ -629,3 +629,53 @@ function pointNorth(heading) {
   };
   rotate(heading);
 }
+
+
+
+// Add some POIs
+
+var center = map.getView().getCenter();
+var iconFeature = new ol.Feature({
+  geometry: new ol.geom.Point([center[0], center[1], 606.0522788084497])
+});
+
+var iconStyle = new ol.style.Style({
+  image: new ol.style.Icon(/** @type {olx.style.IconOptions} */ ({
+    anchor: [0.5, 46],
+    anchorXUnits: 'fraction',
+    anchorYUnits: 'pixels',
+    opacity: 0.75,
+    src: 'data/bus3d_highlighted.png'
+  }))
+});
+
+iconFeature.setStyle(iconStyle);
+
+var p2 = [
+  0.14379175422256824 * 180 / Math.PI,
+  0.817949279916317 * 180 / Math.PI];
+// transform can not handle 3D coordinates
+p2 = ol.proj.transform(p2, 'EPSG:4326', 'EPSG:21781');
+p2.push(561.5240360142113);
+var iconFeature2 = new ol.Feature({
+  geometry: new ol.geom.Point(p2)
+});
+iconFeature2.setStyle(iconStyle);
+
+var vectorSource2 = new ol.source.Vector({
+  features: [iconFeature, iconFeature2]
+});
+var vectorLayer2 = new ol.layer.Vector({
+  source: vectorSource2
+});
+map.getLayers().push(vectorLayer2);
+
+/*
+var handler = new Cesium.ScreenSpaceEventHandler(scene.canvas);
+handler.setInputAction(function(movement) {
+    var ray = camera.getPickRay(movement.endPosition);
+    var point = scene.globe.pick(ray, scene);
+    var carto = Cesium.Ellipsoid.WGS84.cartesianToCartographic(point);
+    console.log('Current position', carto);
+}, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+*/
