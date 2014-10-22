@@ -33,11 +33,10 @@ goog.require('olcs.core.OLImageryProvider');
     var bottom = new Cesium.Cartesian2(canvas.width / 2, canvas.height);
     var ray = scene.camera.getPickRay(bottom);
     var target = scene.globe.pick(ray, scene);
-/*
     if (!target) {
+      // no tiles in the area were loaded?
       target = scene.camera.pickEllipsoid(bottom);
     }
-*/
     return target;
   };
 
@@ -69,6 +68,14 @@ goog.require('olcs.core.OLImageryProvider');
     var camera = scene.camera;
     var ray = new Cesium.Ray(camera.position, camera.direction);
     var target = scene.globe.pick(ray, scene);
+
+    if (!target) {
+      // no tiles in the area were loaded?
+      var ellipsoid = Cesium.Ellipsoid.WGS84;
+      var obj = Cesium.IntersectionTests.rayEllipsoid(ray, ellipsoid);
+      target = Cesium.Ray.getPoint(ray, obj.start);
+    }
+
     if (!target) {
       return undefined;
     }

@@ -429,9 +429,6 @@ if (useCustomSynchronizer) {
   var scene = ol3d.getCesiumScene();
   scene.imageryLayers.removeAll();
   scene.imageryLayers.addImageryProvider(csWMSBase);
-  ol3d.setEnabled(true);
-  ol3d.get3DContainer().style.visibility = 'hidden';
-//  toggle3DVisible();
 }
 
 if (displayOverlay) {
@@ -440,13 +437,6 @@ if (displayOverlay) {
 }
 scene.terrainProvider = terrainProvider;
 scene.globe.depthTestAgainstTerrain = true;
-
-function toggle3DVisible() {
-  var style = ol3d.get3DContainer().style;
-  var newVisibility = (style.visibility == 'hidden') ? 'visible' : 'hidden';
-  console.log('style', style.visibliity, newVisibility);
-  style.visibility = newVisibility;
-}
 
 //var position = map.getView().getCenter();
 //position = ol.proj.transform(position, 'EPSG:21781', 'EPSG:4326');
@@ -519,11 +509,13 @@ function fixTrackInsideTerrain(features) {
 var toggleOngoing = false;
 function toggle2D3D(force) {
   if (!force && toggleOngoing) return;
-//  var container = ol3d.get3DContainer();
   console.log('Ready', terrainProvider.ready);
+  if (!ol3d.getEnabled()) {
+    ol3d.setEnabled(true);
+  }
   if (!terrainProvider.ready) {
     toggleOngoing = true;
-    setTimeout(function () {toggle2D3D(true);}, 20);
+    setTimeout(function() {toggle2D3D(true);}, 200);
   }
   toggleOngoing = false;
   var pivot = olcs.core.pickBottomPoint(scene);
@@ -533,7 +525,7 @@ function toggle2D3D(force) {
     return degree * Math.PI / 180;
   };
 
-  var rotate = function(angle) {
+  var rotate = function(angle, cb) {
     var oldTransform = new Cesium.Matrix4();
     Cesium.Matrix4.clone(camera.transform, oldTransform);
     var iterations = 15;
@@ -547,6 +539,7 @@ function toggle2D3D(force) {
         count++;
         if (count == iterations) {
             clearInterval(id);
+            if (cb) cb();
         }
     }, animSpeed);
   };
@@ -558,24 +551,18 @@ function toggle2D3D(force) {
   console.log('Angles', tiltOnGlobe, angleToZenith);
   if (!goog.isDef(tiltOnGlobe)) {
     // When direction points the sky, going back to zenith.
-    ol3d.get3DContainer().style.visibility = 'visible';
     console.log('Pointing the sky, going to zenith');
     rotate(angleToZenith);
   } else if (epsilon - tiltOnGlobe < middleAngle) {
-    ol3d.get3DContainer().style.visibility = 'visible';
     console.log('Going to middle');
     rotate(middleAngle + angleToZenith);
   } else if (epsilon - tiltOnGlobe < bottomAngle) {
-    ol3d.get3DContainer().style.visibility = 'visible';
     console.log('Going to big', tiltOnGlobe, bottomAngle + angleToZenith);
     rotate(bottomAngle + angleToZenith);
   } else {
     console.log('Going to zenith');
     pointNorth();
-    rotate(angleToZenith);
-    setTimeout(function() {
-      ol3d.get3DContainer().style.visibility = 'hidden';
-    }, 15 * 30);
+    rotate(angleToZenith, function() {ol3d.setEnabled(false); });
   }
 }
 
