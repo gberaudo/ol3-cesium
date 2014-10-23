@@ -40,7 +40,7 @@ var extent = [420000, 30000, 900000, 350000];
 var olOverlayWander = new ol.layer.Tile({
     extent: extent,
     source: new ol.source.TileWMS({
-      url: '//mf-chmobil2.dev.bgdi.ch/~ochriste/wms?mynocache',
+      url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
       attributions: [new ol.Attribution({
         html: '&copy; Geoadmin'
       })],
@@ -55,7 +55,7 @@ var olOverlayWander = new ol.layer.Tile({
 var olPOIOverlay = new ol.layer.Tile({
     extent: extent,
     source: new ol.source.TileWMS({
-      url: '//mf-chmobil2.dev.bgdi.ch/~ochriste/wms?mynocache',
+      url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
       attributions: [new ol.Attribution({
         html: '&copy; Geoadmin'
       })],
