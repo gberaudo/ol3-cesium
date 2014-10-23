@@ -653,9 +653,8 @@ goog.require('olcs.core.OlLayerPrimitive');
     }
     var position = olcs.core.ol4326CoordinateToCesiumCartesian(extentCenter);
 
-    primitives.modelMatrix = Cesium.Transforms.eastNorthUpToFixedFrame(
-        position);
     var options = /** @type {Cesium.optionsLabelCollection} */ ({});
+    options.position = position;
     options.text = text;
 
     var offsetX = style.getOffsetX();
