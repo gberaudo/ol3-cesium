@@ -1,7 +1,10 @@
 //Base on http://openlayers.org/en/v3.0.0/examples/wms-custom-proj.js
 
-var layerName = 'Wanderwegnetz,WanderlandEtappenRegional,WanderlandEtappenLokal,WanderlandEtappenNational';
-var layerNamePOI = 'Train,Bus,Trambus,Boat,Cableway,Funicular,Hotel,Bedbreakfast,Youthhostel,Backpacker,Groupaccom,Sleepingstraw,Farmaccom,Vacationapptmt,Campingsite,Mountainhut,Sightseeing,Taxi,Rufbus,Seilbahn,Place,Velorental,Ebike,Cycleservice,Canoeclub,Shopping';
+
+var layerName = 'Wanderwegnetz,WanderlandEtappenRegional,WanderlandEtappenLokal';
+var layerNamePOI = 'Train,Bus,Hotel';
+//var layerName = 'Wanderwegnetz,WanderlandEtappenRegional,WanderlandEtappenLokal,WanderlandEtappenNational';
+//var layerNamePOI = 'Train,Bus,Trambus,Boat,Cableway,Funicular,Hotel,Bedbreakfast,Youthhostel,Backpacker,Groupaccom,Sleepingstraw,Farmaccom,Vacationapptmt,Campingsite,Mountainhut,Sightseeing,Taxi,Rufbus,Seilbahn,Place,Velorental,Ebike,Cycleservice,Canoeclub,Shopping';
 var useCustomSynchronizer = false;
 var displayOverlay = true;
 
@@ -399,6 +402,7 @@ var csWMSOverlay = new Cesium.WebMapServiceImageryProvider({
   url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
   layers: layerName,
   rectangle: rectangle,
+  minimumRetrievingLevel: 13,
   parameters: {
     format: 'image/png'
   },
@@ -409,11 +413,13 @@ var csWMSPOIOverlay = new Cesium.WebMapServiceImageryProvider({
   url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
   layers: layerNamePOI,
   rectangle: rectangle,
+  minimumRetrievingLevel: 13,
   parameters: {
     format: 'image/png'
   },
   credit: 'Schweizmobil Wanderland'
 });
+
 
 if (useCustomSynchronizer) {
   var viewer = new Cesium.CesiumWidget('map3d', {
