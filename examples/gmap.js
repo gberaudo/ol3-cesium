@@ -40,35 +40,24 @@ ol.proj.addCoordinateTransforms('EPSG:4326', projection,
     });
 
 var extent = [420000, 30000, 900000, 350000];
-var olOverlayWander = new ol.layer.Tile({
-    extent: extent,
-    source: new ol.source.TileWMS({
-      url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
-      attributions: [new ol.Attribution({
-        html: '&copy; Geoadmin'
-      })],
-      params: {
-       'LAYERS': layerName,
-       'FORMAT': 'image/png'
-    },
-      serverType: 'mapserver'
-    })
-  });
 
-var olPOIOverlay = new ol.layer.Tile({
-    extent: extent,
-    source: new ol.source.TileWMS({
-      url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
-      attributions: [new ol.Attribution({
-        html: '&copy; Geoadmin'
-      })],
-      params: {
-       'LAYERS': layerNamePOI,
-       'FORMAT': 'image/png'
-    },
-      serverType: 'mapserver'
-    })
-  });
+function createOl3Layer(name) {
+  var overlay = new ol.layer.Tile({
+      extent: extent,
+      source: new ol.source.TileWMS({
+        url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
+        attributions: [new ol.Attribution({
+          html: '&copy; Geoadmin'
+        })],
+        params: {
+         'LAYERS': name,
+         'FORMAT': 'image/png'
+      },
+        serverType: 'mapserver'
+      })
+    });
+  return overlay;
+}
 
 var layers = [
   new ol.layer.Tile({
@@ -89,8 +78,13 @@ var layers = [
 ];
 
 if (displayOverlay) {
-  layers.push(olOverlayWander);
-  layers.push(olPOIOverlay);
+  layerName.split(',').forEach(function(name) {
+    layers.push(createOl3Layer(name));
+  });
+
+  layerNamePOI.split(',').forEach(function(name) {
+    layers.push(createOl3Layer(name));
+  });
 }
 
 
@@ -395,31 +389,22 @@ var csWMSBase = new Cesium.WebMapServiceImageryProvider({
   url: '//api3.geo.admin.ch/mapproxy/service',
   layers: 'ch.swisstopo.swissimage',
   rectangle: rectangle,
+//    minimumRetrievingLevel: 13,
   credit: 'GeoAdmin Swissimage'
 });
 
-var csWMSOverlay = new Cesium.WebMapServiceImageryProvider({
-  url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
-  layers: layerName,
-  rectangle: rectangle,
-  minimumRetrievingLevel: 13,
-  parameters: {
-    format: 'image/png'
-  },
-  credit: 'Schweizmobil Wanderland'
-});
-
-var csWMSPOIOverlay = new Cesium.WebMapServiceImageryProvider({
-  url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
-  layers: layerNamePOI,
-  rectangle: rectangle,
-  minimumRetrievingLevel: 13,
-  parameters: {
-    format: 'image/png'
-  },
-  credit: 'Schweizmobil Wanderland'
-});
-
+function createCsLayer(name) {
+  return new Cesium.WebMapServiceImageryProvider({
+    url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
+    layers: name,
+    rectangle: rectangle,
+    minimumRetrievingLevel: 13,
+    parameters: {
+      format: 'image/png'
+    },
+    credit: 'Schweizmobil ' + name
+  });
+}
 
 if (useCustomSynchronizer) {
   var viewer = new Cesium.CesiumWidget('map3d', {
@@ -438,8 +423,12 @@ if (useCustomSynchronizer) {
 }
 
 if (displayOverlay) {
-  scene.imageryLayers.addImageryProvider(csWMSOverlay);
-  scene.imageryLayers.addImageryProvider(csWMSPOIOverlay);
+  layerName.split(',').forEach(function(name) {
+    scene.imageryLayers.addImageryProvider(createCsLayer(name));
+  });
+  layerNamePOI.split(',').forEach(function(name) {
+    scene.imageryLayers.addImageryProvider(createCsLayer(name));
+  });
 }
 scene.terrainProvider = terrainProvider;
 scene.globe.depthTestAgainstTerrain = true;
