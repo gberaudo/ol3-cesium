@@ -558,7 +558,8 @@ function toggle2D3D(force) {
   if (!goog.isDef(tiltOnGlobe)) {
     // When direction points the sky, going back to zenith.
     console.log('Pointing the sky, going to zenith');
-    rotate(angleToZenith);
+    pointNorth();
+    rotate(angleToZenith, function() {ol3d.setEnabled(false); });
   } else if (epsilon - tiltOnGlobe < middleAngle) {
     console.log('Going to middle');
     rotate(middleAngle + angleToZenith);
