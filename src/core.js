@@ -73,7 +73,9 @@ goog.require('olcs.core.OLImageryProvider');
       // no tiles in the area were loaded?
       var ellipsoid = Cesium.Ellipsoid.WGS84;
       var obj = Cesium.IntersectionTests.rayEllipsoid(ray, ellipsoid);
-      target = Cesium.Ray.getPoint(ray, obj.start);
+      if (obj) {
+        target = Cesium.Ray.getPoint(ray, obj.start);
+      }
     }
 
     if (!target) {
