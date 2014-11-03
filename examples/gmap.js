@@ -40,10 +40,16 @@ ol.proj.addCoordinateTransforms('EPSG:4326', projection,
     });
 
 var extent = [420000, 30000, 900000, 350000];
+var grid = new ol.tilegrid.TileGrid({
+    resolutions: [4000,3750,3500,3250,3000,2750,2500,2250,2000,1750,1500,1250,1000,750,650,500,250,100,50,20,10,5,2.5,2,1.5,1],
+    tileSize: 256,
+    origin: [420000, 30000]
+});
 var olOverlayWander = new ol.layer.Tile({
     extent: extent,
     source: new ol.source.TileWMS({
       url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
+      tileGrid: grid,
       attributions: [new ol.Attribution({
         html: '&copy; Geoadmin'
       })],
@@ -58,6 +64,7 @@ var olOverlayWander = new ol.layer.Tile({
 var olPOIOverlay = new ol.layer.Tile({
     extent: extent,
     source: new ol.source.TileWMS({
+      tileGrid: grid,
       url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
       attributions: [new ol.Attribution({
         html: '&copy; Geoadmin'
