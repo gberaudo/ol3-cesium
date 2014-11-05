@@ -1,6 +1,7 @@
 //Base on http://openlayers.org/en/v3.0.0/examples/wms-custom-proj.js
 
 var layerName = 'Wanderwegnetz,WanderlandEtappenRegional,WanderlandEtappenLokal,WanderlandEtappenNational';
+var layerNamePOI = 'Train,Bus,Trambus,Boat,Cableway,Funicular,Hotel,Bedbreakfast,Youthhostel,Backpacker,Groupaccom,Sleepingstraw,Farmaccom,Vacationapptmt,Campingsite,Mountainhut,Sightseeing,Taxi,Rufbus,Seilbahn,Place,Velorental,Ebike,Cycleservice,Canoeclub,Shopping';
 var useCustomSynchronizer = false;
 var displayOverlay = true;
 
@@ -51,6 +52,21 @@ var olOverlayWander = new ol.layer.Tile({
     })
   });
 
+var olPOIOverlay = new ol.layer.Tile({
+    extent: extent,
+    source: new ol.source.TileWMS({
+      url: '//mf-chmobil2.dev.bgdi.ch/~ochriste/wms?mynocache',
+      attributions: [new ol.Attribution({
+        html: '&copy; Geoadmin'
+      })],
+      params: {
+       'LAYERS': layerNamePOI,
+       'FORMAT': 'image/png'
+    },
+      serverType: 'mapserver'
+    })
+  });
+
 var layers = [
   new ol.layer.Tile({
     extent: extent,
@@ -71,6 +87,7 @@ var layers = [
 
 if (displayOverlay) {
   layers.push(olOverlayWander);
+  layers.push(olPOIOverlay);
 }
 
 
@@ -382,7 +399,16 @@ var csWMSOverlay = new Cesium.WebMapServiceImageryProvider({
   url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
   layers: layerName,
   rectangle: rectangle,
-//  maximumLevel: 15,
+  parameters: {
+    format: 'image/png'
+  },
+  credit: 'Schweizmobil Wanderland'
+});
+
+var csWMSPOIOverlay = new Cesium.WebMapServiceImageryProvider({
+  url: '//mf-chmobil2.dev.bgdi.ch/~fredj/mapproxy/service/',
+  layers: layerNamePOI,
+  rectangle: rectangle,
   parameters: {
     format: 'image/png'
   },
@@ -407,6 +433,7 @@ if (useCustomSynchronizer) {
 
 if (displayOverlay) {
   scene.imageryLayers.addImageryProvider(csWMSOverlay);
+  scene.imageryLayers.addImageryProvider(csWMSPOIOverlay);
 }
 scene.terrainProvider = terrainProvider;
 scene.globe.depthTestAgainstTerrain = true;
@@ -575,7 +602,7 @@ function pointNorth(heading) {
   printCartesian('position', camera.position);
   var vector = new Cesium.Cartesian3();
   Cesium.Cartesian3.subtract(camera.position, bottomCenter, vector);
-  printCartesian('vector', vector);
+  console.log('vector', vector);
   var zenith = new Cesium.Cartesian3();
   Cesium.Matrix3.multiplyByVector(rotation, vector, zenith);
   printCartesian('zenith', zenith);
