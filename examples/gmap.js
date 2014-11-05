@@ -451,16 +451,7 @@ if (displayOverlay) {
 scene.terrainProvider = terrainProvider;
 scene.globe.depthTestAgainstTerrain = true;
 
-//var position = map.getView().getCenter();
-//position = ol.proj.transform(position, 'EPSG:21781', 'EPSG:4326');
-//position.push(4000);
-
 var camera = scene.camera;
-//camera.frustum.fov = Cesium.Math.toRadians(20);
-//camera.flyTo({
-//  'destination': Cesium.Cartesian3.fromDegrees.apply(this, position),
-//  'duration': 0
-//});
 
 
 function pickBottom(id) {
