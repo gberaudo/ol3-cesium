@@ -421,12 +421,18 @@ camera.lookUp(0.9);
 
 
 function pickBottom(id) {
-  var element = document.getElementById(id);
   var point = olcs.core.pickBottomPoint(scene);
   var carto = Cesium.Ellipsoid.WGS84.cartesianToCartographic(point);
   carto.longitude *= 180 / Math.PI;
   carto.latitude *= 180 / Math.PI;
-  element.innerHTML = carto;
+  document.getElementById(id).innerHTML = carto;
+}
+
+function zenitalAngle(id) {
+  var point = olcs.core.pickBottomPoint(scene);
+  var angle = olcs.core.computeAngleToZenith(scene, point);
+  angle *= 180 / Math.PI;
+  document.getElementById(id).innerHTML = angle;
 }
 
 function center() {
