@@ -95,7 +95,7 @@ cleanall: clean
 	cp -R cesium/Build/Cesium dist/
 	cp -R examples dist/
 	for f in dist/examples/*.html; do $(SEDI) 'sY/@loaderY../ol3cesium.jsY' $$f; done
-	for f in dist/examples/*.html; do $(SEDI) 'sY../ol3/build/ol.jsY../ol3/ol-debug.jsY' $$f; done
+	for f in dist/examples/*.html; do $(SEDI) 'sY../ol3/build/Y../ol3/Y' $$f; done
 	for f in dist/examples/*.html; do $(SEDI) 'sY../cesium/Build/Y../Y' $$f; done
 	touch $@
 
