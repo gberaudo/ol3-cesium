@@ -187,9 +187,9 @@ var map = new ol.Map({
   target: 'map2d',
   view: new ol.View({
     projection: projection,
-    center: ol.proj.transform([8.23, 46.86], 'EPSG:4326', 'EPSG:21781'),
+    center: ol.proj.transform([8.234, 46.86], 'EPSG:4326', 'EPSG:21781'),
     extent: extent,
-    zoom: 2
+    zoom: 8
   })
 });
 
@@ -398,11 +398,11 @@ if (useCustomSynchronizer) {
   var vectorSynchronizer = new olcs.VectorSynchronizer(map, scene);
   vectorSynchronizer.synchronize();
 } else {
-  var ol3d = new olcs.OLCesium(map, 'map3d');
+  var map3d; // = 'map3d';
+  var ol3d = new olcs.OLCesium(map, map3d);
   var scene = ol3d.getCesiumScene();
   scene.imageryLayers.removeAll();
   scene.imageryLayers.addImageryProvider(csWMSBase);
-  ol3d.setEnabled(true);
 }
 
 if (displayOverlay) {
@@ -411,18 +411,16 @@ if (displayOverlay) {
 scene.terrainProvider = terrainProvider;
 scene.globe.depthTestAgainstTerrain = true;
 
-
-var position = map.getView().getCenter();
-position = ol.proj.transform(position, 'EPSG:21781', 'EPSG:4326');
-position.push(4000);
+//var position = map.getView().getCenter();
+//position = ol.proj.transform(position, 'EPSG:21781', 'EPSG:4326');
+//position.push(4000);
 
 var camera = scene.camera;
-camera.frustum.fov = Cesium.Math.toRadians(20);
-camera.flyTo({
-  'destination': Cesium.Cartesian3.fromDegrees.apply(this, position),
-  'duration': 0
-});
-camera.lookUp(0.9);
+//camera.frustum.fov = Cesium.Math.toRadians(20);
+//camera.flyTo({
+//  'destination': Cesium.Cartesian3.fromDegrees.apply(this, position),
+//  'duration': 0
+//});
 
 
 function pickBottom(id) {
@@ -481,8 +479,18 @@ function fixTrackInsideTerrain(features) {
   });
 }
 
-
-function toggle2D3D() {
+var toggleOngoing = false;
+function toggle2D3D(force) {
+  if (!force && toggleOngoing) return;
+  console.log('Ready', terrainProvider.ready);
+  if (!ol3d.getEnabled()) {
+    ol3d.setEnabled(true);
+  }
+  if (!terrainProvider.ready) {
+    toggleOngoing = true;
+    setTimeout(function() {toggle2D3D(true);}, 200);
+  }
+  toggleOngoing = false;
   var pivot = olcs.core.pickBottomPoint(scene);
   var angleToZenith = olcs.core.computeAngleToZenith(scene, pivot);
 
@@ -490,7 +498,7 @@ function toggle2D3D() {
     return degree * Math.PI / 180;
   };
 
-  var rotate = function(angle) {
+  var rotate = function(angle, cb) {
     var oldTransform = new Cesium.Matrix4();
     Cesium.Matrix4.clone(camera.transform, oldTransform);
     var iterations = 15;
@@ -504,6 +512,7 @@ function toggle2D3D() {
         count++;
         if (count == iterations) {
             clearInterval(id);
+            if (cb) cb();
         }
     }, animSpeed);
   };
@@ -512,25 +521,35 @@ function toggle2D3D() {
   var middleAngle = toRad(30);
   var bottomAngle = toRad(80);
   var tiltOnGlobe = olcs.core.computeSignedTiltAngleOnGlobe(scene);
-  if (!tiltOnGlobe) {
+  console.log('Angles', tiltOnGlobe, angleToZenith);
+  if (!goog.isDef(tiltOnGlobe)) {
     // When direction points the sky, going back to zenith.
+    console.log('Pointing the sky, going to zenith');
     rotate(angleToZenith);
   } else if (epsilon - tiltOnGlobe < middleAngle) {
+    console.log('Going to middle');
     rotate(middleAngle + angleToZenith);
   } else if (epsilon - tiltOnGlobe < bottomAngle) {
+    console.log('Going to big', tiltOnGlobe, bottomAngle + angleToZenith);
     rotate(bottomAngle + angleToZenith);
   } else {
-    rotate(angleToZenith);
+    console.log('Going to zenith');
+    pointNorth();
+    rotate(angleToZenith, function() {ol3d.setEnabled(false); });
   }
+}
+
+function printCartesian(msg, point) {
+  var carto = Cesium.Ellipsoid.WGS84.cartesianToCartographic(point);
+  carto.longitude *= 180 / Math.PI;
+  carto.latitude *= 180 / Math.PI;
+  console.log(msg, carto);
 }
 
 function testRotation() {
   //var pivot = olcs.core.pickCenterPoint(scene);
   var pivot = olcs.core.pickBottomPoint(scene);
-  var carto = Cesium.Ellipsoid.WGS84.cartesianToCartographic(pivot);
-  carto.longitude *= 180 / Math.PI;
-  carto.latitude *= 180 / Math.PI;
-  console.log('toggle', carto);
+  printCartesian('rot test', pivot);
 
   var transform = Cesium.Matrix4.fromTranslation(pivot);
   var oldTransform = new Cesium.Matrix4();
@@ -538,4 +557,48 @@ function testRotation() {
   camera.setTransform(transform);
   scene.camera.rotate(camera.right, - 5 * Math.PI / 180);
   camera.setTransform(oldTransform);
+}
+
+function pointNorth(heading) {
+  heading = heading || map.getView().getRotation();
+  // Compute the camera position to zenith quaternion
+  var bottomCenter = olcs.core.pickBottomPoint(scene);
+  var angleToZenith = olcs.core.computeAngleToZenith(scene, bottomCenter);
+  var axis = camera.right;
+  var quaternion = new Cesium.Quaternion();
+  Cesium.Quaternion.fromAxisAngle(axis, angleToZenith, quaternion);
+  var rotation = new Cesium.Matrix3();
+  Cesium.Matrix3.fromQuaternion(quaternion, rotation);
+
+  // Get the zenith point from the rotation of the position vector
+  printCartesian('bottomCenter', bottomCenter);
+  printCartesian('position', camera.position);
+  var vector = new Cesium.Cartesian3();
+  Cesium.Cartesian3.subtract(camera.position, bottomCenter, vector);
+  printCartesian('vector', vector);
+  var zenith = new Cesium.Cartesian3();
+  Cesium.Matrix3.multiplyByVector(rotation, vector, zenith);
+  printCartesian('zenith', zenith);
+  Cesium.Cartesian3.add(zenith, bottomCenter, zenith);
+  printCartesian('zenith', zenith);
+
+  // Actually rotate around the zenith normal
+  var rotate = function(angle) {
+    var oldTransform = new Cesium.Matrix4();
+    Cesium.Matrix4.clone(camera.transform, oldTransform);
+    var iterations = 15;
+    var deltaAngle = angle / iterations;
+    var animSpeed = 30;
+    var count = 0;
+    var id = setInterval(function() {
+       camera.setTransform(Cesium.Matrix4.fromTranslation(zenith));
+       camera.rotate(zenith, deltaAngle);
+       camera.setTransform(oldTransform);
+       count++;
+       if (count == iterations) {
+           clearInterval(id);
+       }
+    }, animSpeed);
+  };
+  rotate(heading);
 }
