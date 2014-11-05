@@ -14,7 +14,6 @@
     <div id="map2d" style="width:800px;height:600px;float:left;"></div>
     <div id="map3d" style="width:800px;height:600px;float:left;position:relative;"></div>
     <!--    <div><input type="button" value="Toggle 2D/3D" onclick="javascript:toggle2D3D()" /></div> -->
-    <div><input type="button" value="Pick bottom" onclick="javascript:pickBottom('msgId')" /></div>
     <div><input type="button" value="Toggle depth test" onclick="javascript:scene.globe.depthTestAgainstTerrain = !scene.globe.depthTestAgainstTerrain" /></div>
     <div><input type="button" value="Center" onclick="javascript:center()" /></div>
     <div>
@@ -22,6 +21,8 @@
       <a href='javascript:void loadGpx("mulin");'>Mulin</a>
       <a href='javascript:void loadGpx("rabiusa");'>Rabiusa</a>
     </div>
+    <div><input type="button" value="Pick bottom" onclick="javascript:pickBottom('msgId')" /></div>
+    <div><input type="button" value="Compute angle to zenith" onclick="javascript:zenitalAngle('msgId')" /></div>
     <div id='msgId'></div>
     <script src="../ol3/build/ol.js"></script>
     <script src="../cesium/Build/Cesium/Cesium.js"></script>
