@@ -68,14 +68,14 @@ cleanall: clean
 
 .build/dist-examples.timestamp: ol3/build/ol-debug.js ol3/build/ol.css cesium/Build/Cesium/Cesium.js dist/ol3cesium.js $(EXAMPLES_JS_FILES) $(EXAMPLES_HTML_FILES)
 	mkdir -p $(dir $@)
-	mkdir -p dist/ol3
-	cp ol3/build/ol-debug.js dist/ol3/
-	mkdir -p dist/ol3/css
-	cp ol3/build/ol.css dist/ol3/css/
+	mkdir -p dist/ol3/build
+	cp ol3/build/ol-debug.js dist/ol3/build/
+	cp ol3/build/ol.css dist/ol3/build/
 	cp -R cesium/Build/Cesium dist/
+	cp -R cesium/Build/CesiumUnminified dist/
 	cp -R examples dist/
 	for f in dist/examples/*.html; do sed 'sY/@loaderY../ol3cesium.jsY' -i $$f; done
-	for f in dist/examples/*.html; do sed 'sY../ol3/build/ol.jsY../ol3/ol-debug.jsY' -i $$f; done
+	for f in dist/examples/*.html; do sed 'sY../ol3/build/ol.jsY../ol3/build/ol-debug.jsY' -i $$f; done
 	for f in dist/examples/*.html; do sed 'sY../cesium/Build/Y../Y' -i $$f; done
 	touch $@
 
