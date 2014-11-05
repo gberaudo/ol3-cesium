@@ -693,3 +693,12 @@ handler.setInputAction(function(movement) {
     console.log('Current position', carto);
 }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 */
+
+function viewOlExtent() {
+  var extent = ol.proj.transform(map.getView().calculateExtent(
+       map.getSize()),
+      'EPSG:21781',
+      'EPSG:4326');
+  cext = Cesium.Rectangle.fromDegrees.apply(null, extent);
+  ol3d.scene_.camera.viewRectangle(cext);
+};
