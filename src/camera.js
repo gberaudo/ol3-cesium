@@ -22,12 +22,6 @@ olcs.Camera = function(scene, map) {
   this.scene_ = scene;
 
   /**
-   * @type {!HTMLCanvasElement}
-   * @private
-   */
-  this.canvas_ = scene.canvas;
-
-  /**
    * @type {!Cesium.Camera}
    * @private
    */
@@ -351,15 +345,20 @@ olcs.Camera.prototype.readFromView = function() {
     return;
   }
   var center = this.view_.getCenter();
-  if (!goog.isDefAndNotNull(center)) {
+  if (!center) {
     return;
   }
-  var ll = this.toLonLat_(center);
-  goog.asserts.assert(!goog.isNull(ll));
 
-  var resolution = this.view_.getResolution();
-  this.distance_ = this.calcDistanceForResolution_(
-      goog.isDef(resolution) ? resolution : 0, goog.math.toRadians(ll[1]));
+  var mapSize = this.map_.getSize();
+  if (!mapSize) {
+    return;
+  }
+  // Get the ol3 extent of the view.
+  var extent = this.view_.calculateExtent(mapSize);
+  if (!extent) {
+    return;
+  }
+  this.distance_ = this.calcDistanceForResolution_(extent);
 
   this.updateCamera_();
 };
@@ -371,40 +370,32 @@ olcs.Camera.prototype.readFromView = function() {
  * @api
  */
 olcs.Camera.prototype.updateView = function() {
+  var scene = this.scene_;
+  var ellipsoid = Cesium.Ellipsoid.WGS84;
+
   if (goog.isNull(this.view_) || goog.isNull(this.fromLonLat_)) {
     return;
   }
-  this.viewUpdateInProgress_ = true;
 
-  // target & distance
-  var center = new Cesium.Cartesian2(this.canvas_.width / 2,
-                                     this.canvas_.height / 2);
-  var target = this.scene_.globe.pick(this.cam_.getPickRay(center),
-                                      this.scene_);
-
-  var bestTarget = target;
-  if (!bestTarget) {
-    //TODO: how to handle this properly ?
-    var carto = this.cam_.positionCartographic.clone();
-    if (this.scene_.globe) {
-      var height = this.scene_.globe.getHeight(carto);
-      carto.height = goog.isDef(height) ? height : 0;
-    }
-    bestTarget = Cesium.Ellipsoid.WGS84.cartographicToCartesian(carto);
+  var centerPoint = olcs.core.pickCenterPoint(scene);
+  var bottomPoint = olcs.core.pickBottomPoint(scene);
+  if (!centerPoint || !bottomPoint) {
+    return;
   }
-  this.distance_ = Cesium.Cartesian3.distance(bestTarget, this.cam_.position);
-  var bestTargetCartographic =
-      Cesium.Ellipsoid.WGS84.cartesianToCartographic(bestTarget);
+
+  this.viewUpdateInProgress_ = true;
+  // target & distance
+  var centerCarto = ellipsoid.cartesianToCartographic(centerPoint);
   this.view_.setCenter(this.fromLonLat_([
-    goog.math.toDegrees(bestTargetCartographic.longitude),
-    goog.math.toDegrees(bestTargetCartographic.latitude)]));
+    goog.math.toDegrees(centerCarto.longitude),
+    goog.math.toDegrees(centerCarto.latitude)]));
 
   // resolution
-  this.view_.setResolution(
-      this.calcResolutionForDistance_(this.distance_,
-          bestTargetCartographic ? bestTargetCartographic.latitude : 0));
+  var resolution = this.calcResolutionForDistance_(centerPoint, bottomPoint);
+  this.view_.setResolution(resolution);
 
 
+  var target = centerPoint;
   /*
    * Since we are positioning the target, the values of heading and tilt
    * need to be calculated _at the target_.
@@ -414,7 +405,7 @@ olcs.Camera.prototype.updateView = function() {
 
     // normal to the ellipsoid at the target
     var targetNormal = new Cesium.Cartesian3();
-    this.scene_.globe.ellipsoid.geocentricSurfaceNormal(target, targetNormal);
+    ellipsoid.geocentricSurfaceNormal(target, targetNormal);
 
     // vector from the target to the camera
     var targetToCamera = new Cesium.Cartesian3();
@@ -461,27 +452,33 @@ olcs.Camera.prototype.checkCameraChange = function(opt_dontSync) {
 
 
 /**
- * @param {number} resolution
- * @param {number} latitude
- * @return {number} The calculated distance.
+ * Elevation needed to view the same height as the OpenLayers view.
+ * This calculation takes the ellipsoid into account but not the terrain.
+ * @param {!ol.Extent} extent The calculated map extent.
+ * @return {number} The needed elevation above ellipsoid.
  * @private
  */
-olcs.Camera.prototype.calcDistanceForResolution_ = function(resolution,
-                                                            latitude) {
-  var fovy = this.cam_.frustum.fovy; // vertical field of view
-  var metersPerUnit = this.view_.getProjection().getMetersPerUnit();
+olcs.Camera.prototype.calcDistanceForResolution_ = function(extent) {
+  ol.extent.applyTransform(extent, this.toLonLat_, extent);
 
-  // number of "map units" visible in 2D (vertically)
-  var visibleMapUnits = resolution * this.canvas_.height;
+  // Take the top and bottom coordinates at the center of the extent
+  // and compute the straight distance in meters between them.
+  var topCenter = Cesium.Cartesian3.fromDegrees(
+      (extent[0] + extent[2]) / 2,
+      extent[3]);
+  var bottomCenter = Cesium.Cartesian3.fromDegrees(
+      (extent[0] + extent[2]) / 2,
+      extent[1]);
+  var visibleHeightMeters = Cesium.Cartesian3.distance(bottomCenter, topCenter);
 
-  // The metersPerUnit does not take latitude into account, but it should
-  // be lower with increasing latitude -- we have to compensate.
-  // In 3D it is not possible to maintain the resolution at more than one point,
-  // so it only makes sense to use the latitude of the "target" point.
-  var relativeCircumference = Math.cos(Math.abs(latitude));
-
-  // how many meters should be visible in 3D
-  var visibleMeters = visibleMapUnits * metersPerUnit * relativeCircumference;
+  // Take the center of the extent and scale it to the ellipsoid.
+  // Then compute the distance between these two points.
+  var center = new Cesium.Cartesian3();
+  var ellipsoid = Cesium.Ellipsoid.WGS84;
+  center = Cesium.Cartesian3.lerp(topCenter, bottomCenter, 0.5, center);
+  var centerOnEllipsoid = center.clone();
+  ellipsoid.scaleToGeodeticSurface(centerOnEllipsoid, centerOnEllipsoid);
+  var centerToEllipsoid = Cesium.Cartesian3.distance(center, centerOnEllipsoid);
 
   // distance required to view the calculated length in meters
   //
@@ -489,32 +486,37 @@ olcs.Camera.prototype.calcDistanceForResolution_ = function(resolution,
   //    |\
   //  x | \
   //    |--\
-  // visibleMeters/2
-  var requiredDistance = (visibleMeters / 2) / Math.tan(fovy / 2);
+  // visibleHeightMeters/2
+  var fovy = this.cam_.frustum.fovy; // vertical field of view
+  var cameraToCenter = (visibleHeightMeters / 2) / Math.tan(fovy / 2);
 
-  // NOTE: This calculation is not absolutely precise, because metersPerUnit
-  // is a great simplification. It does not take ellipsoid/terrain into account.
-
+  var requiredDistance = cameraToCenter - centerToEllipsoid;
   return requiredDistance;
 };
 
 
 /**
- * @param {number} distance
- * @param {number} latitude
+ * @param {Cesium.Cartesian3} center
+ * @param {Cesium.Cartesian3} bottom
  * @return {number} The calculated resolution.
  * @private
  */
-olcs.Camera.prototype.calcResolutionForDistance_ = function(distance,
-                                                            latitude) {
+olcs.Camera.prototype.calcResolutionForDistance_ = function(center, bottom) {
   // See the reverse calculation (calcDistanceForResolution_) for details
-  var fovy = this.cam_.frustum.fovy;
-  var metersPerUnit = this.view_.getProjection().getMetersPerUnit();
+  var ellipsoid = Cesium.Ellipsoid.WGS84;
 
-  var visibleMeters = 2 * distance * Math.tan(fovy / 2);
-  var relativeCircumference = Math.cos(Math.abs(latitude));
-  var visibleMapUnits = visibleMeters / metersPerUnit / relativeCircumference;
-  var resolution = visibleMapUnits / this.canvas_.height;
+  var bottomCarto = ellipsoid.cartesianToCartographic(bottom);
+  var centerCarto = ellipsoid.cartesianToCartographic(center);
+  var extent = [
+    Cesium.Math.toDegrees(bottomCarto.longitude),
+    Cesium.Math.toDegrees(bottomCarto.latitude),
+    Cesium.Math.toDegrees(centerCarto.longitude),
+    Cesium.Math.toDegrees(centerCarto.latitude)
+  ];
+  ol.extent.applyTransform(extent, this.fromLonLat_, extent);
 
-  return resolution;
+  var mapSize = this.map_.getSize();
+  var yResolution = 2 * ol.extent.getHeight(extent) / mapSize[1];
+
+  return yResolution;
 };
