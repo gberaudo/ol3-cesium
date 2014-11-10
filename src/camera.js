@@ -46,16 +46,16 @@ olcs.Camera = function(scene, map) {
   this.viewListenKey_ = null;
 
   /**
-   * @type {?ol.TransformFunction}
+   * @type {!ol.TransformFunction}
    * @private
    */
-  this.toLonLat_ = null;
+  this.toLonLat_ = ol.proj.identityTransform;
 
   /**
-   * @type {?ol.TransformFunction}
+   * @type {!ol.TransformFunction}
    * @private
    */
-  this.fromLonLat_ = null;
+  this.fromLonLat_ = ol.proj.identityTransform;
 
   /**
    * 0 -- topdown, PI/2 -- the horizon
@@ -109,8 +109,8 @@ olcs.Camera.prototype.setView_ = function(view) {
                                   this.handleViewEvent_, this);
     this.readFromView();
   } else {
-    this.toLonLat_ = null;
-    this.fromLonLat_ = null;
+    this.toLonLat_ = ol.proj.identityTransform;
+    this.fromLonLat_ = ol.proj.identityTransform;
   }
 };
 
