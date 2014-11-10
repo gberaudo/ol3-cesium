@@ -383,6 +383,11 @@ olcs.Camera.prototype.updateView = function() {
     return;
   }
 
+  var mapSize = this.map_.getSize();
+  if (!mapSize) {
+    return;
+  }
+
   this.viewUpdateInProgress_ = true;
   // target & distance
   var centerCarto = ellipsoid.cartesianToCartographic(centerPoint);
@@ -391,7 +396,8 @@ olcs.Camera.prototype.updateView = function() {
     goog.math.toDegrees(centerCarto.latitude)]));
 
   // resolution
-  var resolution = this.calcResolutionForDistance_(centerPoint, bottomPoint);
+  var resolution = this.calcResolutionForDistance_(centerPoint, bottomPoint,
+      mapSize);
   this.view_.setResolution(resolution);
 
 
@@ -498,10 +504,12 @@ olcs.Camera.prototype.calcDistanceForResolution_ = function(extent) {
 /**
  * @param {Cesium.Cartesian3} center
  * @param {Cesium.Cartesian3} bottom
+ * @param {ol.Size} size Map size
  * @return {number} The calculated resolution.
  * @private
  */
-olcs.Camera.prototype.calcResolutionForDistance_ = function(center, bottom) {
+olcs.Camera.prototype.calcResolutionForDistance_ = function(center, bottom,
+    size) {
   // See the reverse calculation (calcDistanceForResolution_) for details
   var ellipsoid = Cesium.Ellipsoid.WGS84;
 
