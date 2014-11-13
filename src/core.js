@@ -149,6 +149,7 @@ goog.require('olcs.core.OlLayerPrimitive');
    * The bottom-center of the screen is a good candidate for the pivot point.
    * @param {!Cesium.Scene} scene
    * @param {!Cesium.Cartesian3} pivot Point around which the camera rotates.
+   * @return {number}
    * @api
    */
   olcs.core.computeAngleToZenith = function(scene, pivot) {
