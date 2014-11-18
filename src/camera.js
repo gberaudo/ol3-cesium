@@ -49,13 +49,13 @@ olcs.Camera = function(scene, map) {
    * @type {!ol.TransformFunction}
    * @private
    */
-  this.toLonLat_ = ol.proj.identityTransform;
+  this.toLonLat_ = olcs.Camera.identityProjection;
 
   /**
    * @type {!ol.TransformFunction}
    * @private
    */
-  this.fromLonLat_ = ol.proj.identityTransform;
+  this.fromLonLat_ = olcs.Camera.identityProjection;
 
   /**
    * 0 -- topdown, PI/2 -- the horizon
@@ -91,6 +91,23 @@ olcs.Camera = function(scene, map) {
 
 
 /**
+ * @param {Array.<number>} input Input coordinate array.
+ * @param {Array.<number>=} opt_output Output array of coordinate values.
+ * @param {number=} opt_dimension Dimension.
+ * @return {Array.<number>} Input coordinate array (same array as input).
+ */
+olcs.Camera.identityProjection = function(input, opt_output, opt_dimension) {
+  var dim = opt_dimension || input.length;
+  if (opt_output) {
+    for (var i = 0; i < dim; ++i) {
+      opt_output[i] = input[i];
+    }
+  }
+  return input;
+};
+
+
+/**
  * @param {?ol.View} view New view to use.
  * @private
  */
@@ -113,8 +130,8 @@ olcs.Camera.prototype.setView_ = function(view) {
                                   this.handleViewEvent_, this);
     this.readFromView();
   } else {
-    this.toLonLat_ = ol.proj.identityTransform;
-    this.fromLonLat_ = ol.proj.identityTransform;
+    this.toLonLat_ = olcs.Camera.identityProjection;
+    this.fromLonLat_ = olcs.Camera.identityProjection;
   }
 };
 
