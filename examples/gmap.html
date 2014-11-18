@@ -13,8 +13,8 @@
   <body style='background-color: gray'>
     <div id="map2d" style="width:800px;height:600px;float:left;"></div>
     <div id="map3d" style="width:800px;height:600px;float:left;position:relative;"></div>
-    <div><input type="button" value="Transition 2D/3D" onclick="javascript:toggle2D3D()" /></div>
-    <div><input type="button" value="Point to north" onclick="javascript:pointNorth()" /></div>
+    <div><input type="button" value="Transition 2D/3D" onclick="javascript:toggle2D3D(ol3d)" /></div>
+    <div><input type="button" value="Point to north" onclick="javascript:pointNorth(ol3d)" /></div>
     <div><input type="button" value="Toggle depth test" onclick="javascript:scene.globe.depthTestAgainstTerrain = !scene.globe.depthTestAgainstTerrain" /></div>
     <div><input type="button" value="Warm up 3D" onclick="javascript:ol3d.warmUp(75000, 5000)" /></div>
     <div><input type="button" value="Zenith 2D/3D" onclick="javascript:ol3d.setEnabled(!ol3d.getEnabled())" /></div>
