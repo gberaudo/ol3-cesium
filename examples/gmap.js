@@ -320,72 +320,55 @@ function loadGpx(name) {
  */
 function fixTrackInsideTerrain(features) {
   var geometry = features[0].getGeometry();
-  geometry.applyTransform(function(input, output, stride) {
-    if (stride < 3) return;
-    for (i = 0; i < input.length; i += stride) {
-      input[i + 2] = input[i + 2] + 51;
-    }
-  });
+  olcs.core.applyHeightOffsetToGeometry(geometry, 51);
 }
 
 var toggleOngoing = false;
-function toggle2D3D(force) {
-  if (!force && toggleOngoing) return;
+function toggle2D3D(ol3d) {
+  var scene = ol3d.getCesiumScene();
+  var terrainProvider = scene.terrainProvider;
+  var camera = scene.camera;
+
+  if (toggleOngoing) return;
   if (!ol3d.getEnabled()) {
     ol3d.setEnabled(true);
   }
-  if (!terrainProvider.ready) {
-    toggleOngoing = true;
-    setTimeout(function() {toggle2D3D(true);}, 200);
-  }
-  toggleOngoing = false;
+
+  toggleOngoing = true;
   var pivot = olcs.core.pickBottomPoint(scene);
+  // FIXME handle undefined case
   var angleToZenith = olcs.core.computeAngleToZenith(scene, pivot);
 
-  var toRad = function(degree) {
-    return degree * Math.PI / 180;
-  };
-
-  var rotate = function(angle, cb) {
-    var oldTransform = new Cesium.Matrix4();
-    Cesium.Matrix4.clone(camera.transform, oldTransform);
-    var iterations = 15;
-    var deltaAngle = - angle / iterations;
-    var animSpeed = 30;
-    var count = 0;
-    var id = setInterval(function() {
-        camera.setTransform(Cesium.Matrix4.fromTranslation(pivot));
-        camera.rotate(camera.right, deltaAngle);
-        camera.setTransform(oldTransform);
-        count++;
-        if (count == iterations) {
-            clearInterval(id);
-            if (cb) cb();
-        }
-    }, animSpeed);
-  };
-  var epsilon = toRad(5);
-  var topAngle = 0;
-  var middleAngle = toRad(30);
-  var bottomAngle = toRad(80);
+  var epsilon = Cesium.Math.toRadians(5);
+  var middleAngle = Cesium.Math.toRadians(30);
+  var bottomAngle = Cesium.Math.toRadians(80);
   var tiltOnGlobe = olcs.core.computeSignedTiltAngleOnGlobe(scene);
-  console.log('Angles', tiltOnGlobe, angleToZenith);
-  if (!goog.isDef(tiltOnGlobe)) {
+
+  var cb = function() {toggleOngoing = false;};
+
+  var angle;
+  if (typeof tiltOnGlobe === undefined) {
     // When direction points the sky, going back to zenith.
-    console.log('Pointing the sky, going to zenith');
-    pointNorth();
-    rotate(angleToZenith, function() {ol3d.setEnabled(false); });
+    pointNorth(ol3d);
+    cb = function() {toggleOngoing = false; ol3d.setEnabled(false);};
   } else if (epsilon - tiltOnGlobe < middleAngle) {
-    console.log('Going to middle');
-    rotate(middleAngle + angleToZenith);
+    angle = middleAngle + angleToZenith;
   } else if (epsilon - tiltOnGlobe < bottomAngle) {
-    console.log('Going to big', tiltOnGlobe, bottomAngle + angleToZenith);
-    rotate(bottomAngle + angleToZenith);
+    angle = bottomAngle + angleToZenith;
   } else {
-    console.log('Going to zenith');
-    pointNorth();
-    rotate(angleToZenith, function() {ol3d.setEnabled(false); });
+    pointNorth(ol3d);
+    cb = function() {toggleOngoing = false; ol3d.setEnabled(false);};
+    angle = angleToZenith;
   }
+
+  /** @type {olcs.core.RotateAroundAxisOption} */
+  var options = {
+    callback: cb
+  };
+  var transform = Cesium.Matrix4.fromTranslation(pivot);
+  var axis = camera.right;
+  var rotateAroundAxis = olcs.core.rotateAroundAxis;
+  rotateAroundAxis(camera, -angle, axis, transform, options);
 }
 
 function printCartesian(msg, point) {
@@ -408,48 +391,11 @@ function testRotation() {
   camera.setTransform(oldTransform);
 }
 
-function pointNorth(heading) {
-  heading = heading || map.getView().getRotation();
-  // Compute the camera position to zenith quaternion
-  var bottomCenter = olcs.core.pickBottomPoint(scene);
-  var angleToZenith = olcs.core.computeAngleToZenith(scene, bottomCenter);
-  var axis = camera.right;
-  var quaternion = new Cesium.Quaternion();
-  Cesium.Quaternion.fromAxisAngle(axis, angleToZenith, quaternion);
-  var rotation = new Cesium.Matrix3();
-  Cesium.Matrix3.fromQuaternion(quaternion, rotation);
-
-  // Get the zenith point from the rotation of the position vector
-  printCartesian('bottomCenter', bottomCenter);
-  printCartesian('position', camera.position);
-  var vector = new Cesium.Cartesian3();
-  Cesium.Cartesian3.subtract(camera.position, bottomCenter, vector);
-  console.log('vector', vector);
-  var zenith = new Cesium.Cartesian3();
-  Cesium.Matrix3.multiplyByVector(rotation, vector, zenith);
-  printCartesian('zenith', zenith);
-  Cesium.Cartesian3.add(zenith, bottomCenter, zenith);
-  printCartesian('zenith', zenith);
-
-  // Actually rotate around the zenith normal
-  var rotate = function(angle) {
-    var oldTransform = new Cesium.Matrix4();
-    Cesium.Matrix4.clone(camera.transform, oldTransform);
-    var iterations = 15;
-    var deltaAngle = angle / iterations;
-    var animSpeed = 30;
-    var count = 0;
-    var id = setInterval(function() {
-       camera.setTransform(Cesium.Matrix4.fromTranslation(zenith));
-       camera.rotate(zenith, deltaAngle);
-       camera.setTransform(oldTransform);
-       count++;
-       if (count == iterations) {
-           clearInterval(id);
-       }
-    }, animSpeed);
-  };
-  rotate(heading);
+function pointNorth(ol3d) {
+  var map = ol3d.getOlMap();
+  var scene = ol3d.getCesiumScene();
+  var heading = map.getView().getRotation();
+  olcs.core.setHeading(scene, heading);
 }
 
 
