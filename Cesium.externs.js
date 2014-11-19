@@ -534,8 +534,8 @@ Cesium.Camera.prototype.pickEllipsoid = function(windowPos, opt_ellipsoid) {};
 
 /**
  * @constructor
- * @param {number} x
- * @param {number} y
+ * @param {number=} x
+ * @param {number=} y
  */
 Cesium.Cartesian2 = function(x, y) {};
 
@@ -2524,3 +2524,22 @@ Cesium.TerrainProvider = function() {};
  * @constructor
  */
 Cesium.CesiumTerrainProvider = function(opt_options) {};
+
+/**
+ * @constructor
+ */
+Cesium.Matrix2 = function() {};
+
+/**
+ * @param {!Cesium.Matrix2} matrix
+ * @param {!Cesium.Cartesian2} vector
+ * @param {!Cesium.Cartesian2} result
+ * @return !Cesium.Cartesian2
+ */
+Cesium.Matrix2.multiplyByVector = function(matrix, vector, result) {};
+
+/**
+ * @param {number} angle
+ * @return {!Cesium.Matrix2}
+ */
+Cesium.Matrix2.fromRotation = function(angle) {};
