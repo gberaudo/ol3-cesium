@@ -371,15 +371,10 @@ olcs.Camera.prototype.readFromView = function() {
   }
 
   var mapSize = this.map_.getSize();
-  if (!mapSize) {
+  if (!mapSize || !this.map_.getCoordinateFromPixel([0, 0])) {
     return;
   }
-  // Get the ol3 extent of the view.
-  var extent = this.view_.calculateExtent(mapSize);
-  if (!extent) {
-    return;
-  }
-  this.distance_ = this.calcDistanceForResolution_(extent);
+  this.distance_ = this.calcDistanceForResolution_();
 
   this.updateCamera_();
 };
@@ -410,16 +405,18 @@ olcs.Camera.prototype.updateView = function() {
   }
 
   this.viewUpdateInProgress_ = true;
+
+  // resolution
+  var resolution = this.calcResolutionForDistance_(centerPoint, bottomPoint,
+      mapSize);
+  this.view_.setResolution(resolution);
+
   // target & distance
   var centerCarto = ellipsoid.cartesianToCartographic(centerPoint);
   this.view_.setCenter(this.fromLonLat_([
     goog.math.toDegrees(centerCarto.longitude),
     goog.math.toDegrees(centerCarto.latitude)]));
 
-  // resolution
-  var resolution = this.calcResolutionForDistance_(centerPoint, bottomPoint,
-      mapSize);
-  this.view_.setResolution(resolution);
 
 
   var target = centerPoint;
@@ -483,21 +480,23 @@ olcs.Camera.prototype.checkCameraChange = function(opt_dontSync) {
 /**
  * Elevation needed to view the same height as the OpenLayers view.
  * This calculation takes the ellipsoid into account but not the terrain.
- * @param {!ol.Extent} extent The calculated map extent.
  * @return {number} The needed elevation above ellipsoid.
  * @private
  */
-olcs.Camera.prototype.calcDistanceForResolution_ = function(extent) {
-  ol.extent.applyTransform(extent, this.toLonLat_, extent);
+olcs.Camera.prototype.calcDistanceForResolution_ = function() {
+  var map = this.map_;
+  var mapSize = map.getSize();
 
   // Take the top and bottom coordinates at the center of the extent
   // and compute the straight distance in meters between them.
-  var topCenter = Cesium.Cartesian3.fromDegrees(
-      (extent[0] + extent[2]) / 2,
-      extent[3]);
-  var bottomCenter = Cesium.Cartesian3.fromDegrees(
-      (extent[0] + extent[2]) / 2,
-      extent[1]);
+  // As the view may be rotated, we uses map.getCoordinateFromPixel.
+  var coo = map.getCoordinateFromPixel([mapSize[0] / 2, 0]);
+  this.toLonLat_(coo, coo, 2);
+  var topCenter = Cesium.Cartesian3.fromDegrees(coo[0], coo[1], 0);
+
+  coo = map.getCoordinateFromPixel([mapSize[0] / 2, mapSize[1]]);
+  this.toLonLat_(coo, coo, 2);
+  var bottomCenter = Cesium.Cartesian3.fromDegrees(coo[0], coo[1], 0);
   var visibleHeightMeters = Cesium.Cartesian3.distance(bottomCenter, topCenter);
 
   // Take the center of the extent and scale it to the ellipsoid.
@@ -536,8 +535,15 @@ olcs.Camera.prototype.calcResolutionForDistance_ = function(center, bottom,
   // See the reverse calculation (calcDistanceForResolution_) for details
   var ellipsoid = Cesium.Ellipsoid.WGS84;
 
-  var bottomCarto = ellipsoid.cartesianToCartographic(bottom);
   var centerCarto = ellipsoid.cartesianToCartographic(center);
+  var bottomCarto = ellipsoid.cartesianToCartographic(bottom);
+  var rotation = this.map_.getView().getRotation();
+  if (rotation) {
+    var rotMatrix = Cesium.Matrix2.fromRotation(rotation);
+    rotateCarto(rotMatrix, centerCarto);
+    rotateCarto(rotMatrix, bottomCarto);
+  }
+
   var extent = [
     Cesium.Math.toDegrees(bottomCarto.longitude),
     Cesium.Math.toDegrees(bottomCarto.latitude),
@@ -546,8 +552,18 @@ olcs.Camera.prototype.calcResolutionForDistance_ = function(center, bottom,
   ];
   ol.extent.applyTransform(extent, this.fromLonLat_, extent);
 
-  var mapSize = this.map_.getSize();
-  var yResolution = 2 * ol.extent.getHeight(extent) / mapSize[1];
+  var mapHeight = this.map_.getSize()[1];
+  var extentHeight = 2 * ol.extent.getHeight(extent);
+
+  var yResolution = extentHeight / mapHeight;
 
   return yResolution;
+
+  function rotateCarto(matrix, carto) {
+    var tmp = new Cesium.Cartesian2(carto.longitude, carto.latitude);
+    var res = new Cesium.Cartesian2();
+    Cesium.Matrix2.multiplyByVector(matrix, tmp, res);
+    carto.longitude = res.x;
+    carto.latitude = res.y;
+  }
 };
