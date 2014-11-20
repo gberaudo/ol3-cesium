@@ -535,14 +535,18 @@ olcs.Camera.prototype.calcResolutionForDistance_ = function(center, bottom,
   // See the reverse calculation (calcDistanceForResolution_) for details
   var ellipsoid = Cesium.Ellipsoid.WGS84;
 
-  var centerCarto = ellipsoid.cartesianToCartographic(center);
-  var bottomCarto = ellipsoid.cartesianToCartographic(bottom);
   var rotation = this.map_.getView().getRotation();
   if (rotation) {
-    var rotMatrix = Cesium.Matrix2.fromRotation(rotation);
-    rotateCarto(rotMatrix, centerCarto);
-    rotateCarto(rotMatrix, bottomCarto);
+    // Fixing the orientation to north so that the distance between the
+    // center and the bottom is half the map height
+    var quaternion = Cesium.Quaternion.fromAxisAngle(center, rotation);
+    var rotMatrix = Cesium.Matrix3.fromQuaternion(quaternion);
+    var vector = bottom.clone();
+    Cesium.Matrix3.multiplyByVector(rotMatrix, vector, bottom);
   }
+
+  var centerCarto = ellipsoid.cartesianToCartographic(center);
+  var bottomCarto = ellipsoid.cartesianToCartographic(bottom);
 
   var extent = [
     Cesium.Math.toDegrees(bottomCarto.longitude),
@@ -553,17 +557,12 @@ olcs.Camera.prototype.calcResolutionForDistance_ = function(center, bottom,
   ol.extent.applyTransform(extent, this.fromLonLat_, extent);
 
   var mapHeight = this.map_.getSize()[1];
-  var extentHeight = 2 * ol.extent.getHeight(extent);
+  var extentHeight = 2 * (extent[3] - extent[1]);
 
   var yResolution = extentHeight / mapHeight;
+  // There is something wrong with the picking: the center is moving a lot while manually rotating
+  // and the resolution is decreasing to reach 0 when rotation is 45 degrees
+  console.log(centerCarto.height, extent[1], extent[3], extentHeight, yResolution);
 
   return yResolution;
-
-  function rotateCarto(matrix, carto) {
-    var tmp = new Cesium.Cartesian2(carto.longitude, carto.latitude);
-    var res = new Cesium.Cartesian2();
-    Cesium.Matrix2.multiplyByVector(matrix, tmp, res);
-    carto.longitude = res.x;
-    carto.latitude = res.y;
-  }
 };
