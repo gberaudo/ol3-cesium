@@ -268,6 +268,7 @@ if (displayOverlay) {
 }
 scene.terrainProvider = terrainProvider;
 scene.globe.depthTestAgainstTerrain = true;
+scene.screenSpaceCameraController.minimumZoomDistance = 1000;
 
 var camera = scene.camera;
 
@@ -449,3 +450,4 @@ function viewOlExtent() {
 };
 
 setTimeout(function() { ol3d.warmUp(75000, 5000); }, 2500);
+camera.constrainedAxisAngle = 3 * Math.PI / 8;
