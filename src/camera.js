@@ -562,7 +562,7 @@ olcs.Camera.prototype.calcResolutionForDistance_ = function(center, bottom,
   var yResolution = extentHeight / mapHeight;
   // There is something wrong with the picking: the center is moving a lot while manually rotating
   // and the resolution is decreasing to reach 0 when rotation is 45 degrees
-  console.log(centerCarto.height, extent[1], extent[3], extentHeight, yResolution);
+//  console.log(centerCarto.height, extent[1], extent[3], extentHeight, yResolution);
 
   return yResolution;
 };
