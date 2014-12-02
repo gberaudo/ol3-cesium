@@ -134,6 +134,7 @@ Cesium.BillboardCollection = function(opt_options) {};
  *   verticalOrigin: (Cesium.VerticalOrigin|undefined),
  *   horizontalOrigin: (Cesium.HorizontalOrigin|undefined),
  *   scaleByDistance: (Cesium.NearFarScalar|undefined),
+ *   pixelOffsetScaleByDistance: (Cesium.NearFarScalar|undefined),
  *   position: !Cesium.Cartesian3
  * }}
  */
