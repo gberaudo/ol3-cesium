@@ -662,6 +662,28 @@ goog.require('olcs.core.OlLayerPrimitive');
     return addTextStyle(olGeometry, olStyle, primitives);
   };
 
+  olcs.core.experimentalLineToCesiumBillboards = function(olGeometry,
+      projection, olStyle, billboards) {
+    olGeometry = olGeometryCloneTo4326(olGeometry, projection);
+    goog.asserts.assert(olGeometry.getType() == 'LineString');
+
+    var imageStyle = olStyle.getImage(); // only canvas
+    var image = imageStyle.getImage(1); // get normal density
+
+    var toCartesiansArray = olcs.core.ol4326CoordinateArrayToCsCartesians;
+    var positions = toCartesiansArray(olGeometry.getCoordinates());
+
+    var nearFarScalar = new Cesium.NearFarScalar(1000, 1.0, 1e6, 0.1);
+    goog.array.forEach(positions, function(position) {
+      billboards.add({
+        // always update Cesium externs before adding a property
+        image: image,
+        scaleByDistance: nearFarScalar,
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        position: position
+      });
+    });
+  };
 
   /**
    * Convert an OpenLayers line string geometry to Cesium.
@@ -1086,6 +1108,7 @@ goog.require('olcs.core.OlLayerPrimitive');
   olcs.core.olFeatureToCesium = function(feature, style, context, opt_geom) {
     var geom = opt_geom || feature.getGeometry();
     var proj = context.projection;
+    var bbs = context.billboards;
 
     var id = function(primitives) {
       primitives.olFeatureId = goog.getUid(feature);
@@ -1108,7 +1131,6 @@ goog.require('olcs.core.OlLayerPrimitive');
         return id(primitives);
       case 'Point':
         geom = /** @type {!ol.geom.Point} */ (geom);
-        var bbs = context.billboards;
         var result = olcs.core.olPointGeometryToCesium(geom, proj, style, bbs,
             goog.getUid(feature), context.featureToCesiumMap);
         if (!result) {
@@ -1122,7 +1144,12 @@ goog.require('olcs.core.OlLayerPrimitive');
         return id(olcs.core.olCircleGeometryToCesium(geom, proj, style));
       case 'LineString':
         geom = /** @type {!ol.geom.LineString} */ (geom);
-        return id(olcs.core.olLineStringGeometryToCesium(geom, proj, style));
+        if (style.getImage()) {
+          olcs.core.experimentalLineToCesiumBillboards(geom, proj, style, bbs);
+          return null;
+        } else {
+          return id(olcs.core.olLineStringGeometryToCesium(geom, proj, style));
+        }
       case 'Polygon':
         geom = /** @type {!ol.geom.Polygon} */ (geom);
         return id(olcs.core.olPolygonGeometryToCesium(geom, proj, style));
