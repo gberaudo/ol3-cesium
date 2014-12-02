@@ -482,15 +482,21 @@ goog.require('olcs.core.OlLayerPrimitive');
   /**
    * Convert an array of 2D or 3D OpenLayers coordinates to Cesium.
    * @param {Array.<!ol.Coordinate>} coordinates Ol3 coordinates.
+   * @param {number=} opt_stride Keep 1 out of opt_stride elements.
    * @return {!Array.<Cesium.Cartesian3>} Cesium cartesian coordinates
    * @api
    */
-  olcs.core.ol4326CoordinateArrayToCsCartesians = function(coordinates) {
+  olcs.core.ol4326CoordinateArrayToCsCartesians = function(coordinates,
+      opt_stride) {
     goog.asserts.assert(coordinates !== null);
     var toCartesian = olcs.core.ol4326CoordinateToCesiumCartesian;
-    var cartesians = [];
-    for (var i = 0; i < coordinates.length; ++i) {
-      cartesians.push(toCartesian(coordinates[i]));
+    opt_stride = opt_stride || 1;
+    var newLength = Math.floor(coordinates.length / opt_stride);
+    var cartesians = new Array(newLength);
+    var j = 0;
+    for (var i = 0; i < newLength; ++i) {
+      cartesians[i] = toCartesian(coordinates[j]);
+      j += opt_stride;
     }
     return cartesians;
   };
@@ -712,18 +718,21 @@ goog.require('olcs.core.OlLayerPrimitive');
   };
 
   olcs.core.experimentalLineToCesiumBillboards = function(olGeometry,
-      projection, olStyle, billboards) {
+      projection, olStyle) {
     olGeometry = olGeometryCloneTo4326(olGeometry, projection);
     goog.asserts.assert(olGeometry.getType() == 'LineString');
+    var billboards = new Cesium.BillboardCollection();
 
     var imageStyle = olStyle.getImage(); // only canvas
     var image = imageStyle.getImage(1); // get normal density
 
     var toCartesiansArray = olcs.core.ol4326CoordinateArrayToCsCartesians;
-    var positions = toCartesiansArray(olGeometry.getCoordinates());
+    var positions = toCartesiansArray(olGeometry.getCoordinates(), 3);
 
-    var nearFarScalar = new Cesium.NearFarScalar(1000, 1.0, 1e6, 0.1);
+    var nearFarScalar = new Cesium.NearFarScalar(1000, 1.0, 1e6, 0);
     goog.array.forEach(positions, function(position) {
+      goog.asserts.assertInstanceof(image, HTMLCanvasElement);
+      goog.asserts.assert(!goog.isNull(position));
       billboards.add({
         // always update Cesium externs before adding a property
         image: image,
@@ -732,6 +741,7 @@ goog.require('olcs.core.OlLayerPrimitive');
         position: position
       });
     });
+    return billboards;
   };
 
   /**
@@ -1209,8 +1219,11 @@ goog.require('olcs.core.OlLayerPrimitive');
       case 'LineString':
         geom = /** @type {!ol.geom.LineString} */ (geom);
         if (style.getImage()) {
-          olcs.core.experimentalLineToCesiumBillboards(geom, proj, style, bbs);
-          return null;
+          var both = new Cesium.PrimitiveCollection();
+          both.add(olcs.core.experimentalLineToCesiumBillboards(geom, proj,
+              style));
+          both.add(olcs.core.olLineStringGeometryToCesium(geom, proj, style));
+          return id(both);
         } else {
           return id(olcs.core.olLineStringGeometryToCesium(geom, proj, style));
         }
