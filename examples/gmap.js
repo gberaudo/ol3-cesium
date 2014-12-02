@@ -83,6 +83,11 @@ var styles = {
     image: image
   })],
   'LineString': [new ol.style.Style({
+    image: new ol.style.Circle({
+        radius: 5,
+        fill: new ol.style.Fill({color: 'red'}),
+        stroke: new ol.style.Stroke({color: 'blue', width: 1})
+    }),
     stroke: new ol.style.Stroke({
       color: 'yellow',
       width: 4
@@ -256,7 +261,7 @@ if (useCustomSynchronizer) {
   vectorSynchronizer.synchronize();
 } else {
   var map3d; // = 'map3d';
-  var ol3d = new olcs.OLCesium(map, map3d);
+  var ol3d = new olcs.OLCesium({map: map, target: map3d});
   var scene = ol3d.getCesiumScene();
   scene.imageryLayers.removeAll();
   scene.imageryLayers.addImageryProvider(csWMSBase);
@@ -268,7 +273,7 @@ if (displayOverlay) {
 }
 scene.terrainProvider = terrainProvider;
 scene.globe.depthTestAgainstTerrain = true;
-scene.screenSpaceCameraController.minimumZoomDistance = 1000;
+scene.screenSpaceCameraController.minimumZoomDistance = 50;
 
 var camera = scene.camera;
 
@@ -396,7 +401,8 @@ function pointNorth(ol3d) {
   var map = ol3d.getOlMap();
   var scene = ol3d.getCesiumScene();
   var heading = map.getView().getRotation();
-  olcs.core.setHeading(scene, heading);
+  var bottom = olcs.core.pickBottomPoint(scene);
+  olcs.core.setHeadingUsingBottomCenter(scene, heading, bottom);
 }
 
 
