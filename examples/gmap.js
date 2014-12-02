@@ -83,6 +83,11 @@ var styles = {
     image: image
   })],
   'LineString': [new ol.style.Style({
+    image: new ol.style.Circle({
+        radius: 5,
+        fill: new ol.style.Fill({color: 'red'}),
+        stroke: new ol.style.Stroke({color: 'blue', width: 1})
+    }),
     stroke: new ol.style.Stroke({
       color: 'yellow',
       width: 4
@@ -268,7 +273,7 @@ if (displayOverlay) {
 }
 scene.terrainProvider = terrainProvider;
 scene.globe.depthTestAgainstTerrain = true;
-scene.screenSpaceCameraController.minimumZoomDistance = 1000;
+scene.screenSpaceCameraController.minimumZoomDistance = 50;
 
 var camera = scene.camera;
 
