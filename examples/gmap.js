@@ -261,7 +261,10 @@ if (useCustomSynchronizer) {
   vectorSynchronizer.synchronize();
 } else {
   var map3d; // = 'map3d';
-  var ol3d = new olcs.OLCesium(map, map3d);
+  var ol3d = new olcs.OLCesium({
+    map: map,
+    target: map3d
+  });
   var scene = ol3d.getCesiumScene();
   scene.imageryLayers.removeAll();
   scene.imageryLayers.addImageryProvider(csWMSBase);
