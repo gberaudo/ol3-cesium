@@ -730,17 +730,20 @@ goog.require('olcs.core.OlLayerPrimitive');
     var positions = toCartesiansArray(olGeometry.getCoordinates(), 3);
 
     var nearFarScalar = new Cesium.NearFarScalar(1000, 1.0, 1e6, 0);
-    goog.array.forEach(positions, function(position) {
+    for (var i = 0; i < positions.length; ++i) {
+      var position = positions[i];
       goog.asserts.assertInstanceof(image, HTMLCanvasElement);
       goog.asserts.assert(!goog.isNull(position));
       billboards.add({
         // always update Cesium externs before adding a property
         image: image,
         scaleByDistance: nearFarScalar,
+        // hack to pass position number and cut distance to the shader
+        pixelOffsetScaleByDistance: new Cesium.NearFarScalar(i, 0, 75000, 0),
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
         position: position
       });
-    });
+    }
     return billboards;
   };
 
