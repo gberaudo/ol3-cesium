@@ -404,7 +404,10 @@ function pointNorth(ol3d) {
   var map = ol3d.getOlMap();
   var scene = ol3d.getCesiumScene();
   var heading = map.getView().getRotation();
-  olcs.core.setHeading(scene, heading);
+  var bottomCenter = olcs.core.pickBottomPoint(scene);
+  if (bottomCenter) {
+    olcs.core.setHeadingUsingBottomCenter(scene, heading, bottomCenter);
+  }
 }
 
 
