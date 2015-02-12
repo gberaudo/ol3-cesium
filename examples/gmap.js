@@ -261,7 +261,10 @@ if (useCustomSynchronizer) {
   vectorSynchronizer.synchronize();
 } else {
   var map3d; // = 'map3d';
-  var ol3d = new olcs.OLCesium({map: map, target: map3d});
+  var ol3d = new olcs.OLCesium({
+    map: map,
+    target: map3d
+  });
   var scene = ol3d.getCesiumScene();
   scene.imageryLayers.removeAll();
   scene.imageryLayers.addImageryProvider(csWMSBase);
@@ -401,8 +404,10 @@ function pointNorth(ol3d) {
   var map = ol3d.getOlMap();
   var scene = ol3d.getCesiumScene();
   var heading = map.getView().getRotation();
-  var bottom = olcs.core.pickBottomPoint(scene);
-  olcs.core.setHeadingUsingBottomCenter(scene, heading, bottom);
+  var bottomCenter = olcs.core.pickBottomPoint(scene);
+  if (bottomCenter) {
+    olcs.core.setHeadingUsingBottomCenter(scene, heading, bottomCenter);
+  }
 }
 
 
