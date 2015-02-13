@@ -487,6 +487,7 @@ goog.require('olcs.core.OlLayerPrimitive');
     var options = {
       // always update Cesium externs before adding a property
       flat: true, // work with all geometries
+      translucent: false,
       renderState: {
         depthTest: {
           enabled: true
@@ -735,9 +736,12 @@ goog.require('olcs.core.OlLayerPrimitive');
       }
     }
 
+    var height = olGeometry['height'] || 70000;
+    if (!height) console.log('XXXX');
     var fillGeometry = new Cesium.PolygonGeometry({
       // always update Cesium externs before adding a property
       polygonHierarchy: polygonHierarchy,
+      extrudedHeight: height,
       perPositionHeight: true
     });
 
@@ -745,6 +749,7 @@ goog.require('olcs.core.OlLayerPrimitive');
     var outlineGeometry = new Cesium.PolygonOutlineGeometry({
       // always update Cesium externs before adding a property
       polygonHierarchy: hierarchy,
+      extrudedHeight: height,
       perPositionHeight: true,
       width: width
     });

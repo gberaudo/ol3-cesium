@@ -9,6 +9,15 @@ var vector = new ol.layer.Vector({
   })
 });
 
+var key = vector.getSource().on('addfeature', function(event) {
+  var source = vector.getSource();
+  event.feature.getGeometry()['height'] =  700000;
+});
+
+vector.on('change', function() {
+  console.log('Vector change');
+});
+
 var map = new ol.Map({
   layers: [raster, vector],
   target: 'map2d',
