@@ -431,18 +431,14 @@ goog.require('olcs.core.OlLayerPrimitive');
       if (prim instanceof Cesium.PrimitiveCollection) {
         olcs.core.updateCesiumPrimitives(olLayer, prim);
       } else {
-        geoms = csPrimitives.get(i).geometryInstances;
-        // code below never reached once the primitive was rendered
-        if (geoms) {
-          for (j = geoms.length - 1; j >= 0; --j) {
-            geom = geoms[j];
-            color = geom.attributes.color;
-            if (color) {
-              //FIXME This currently overrides style opacity with layer opacity
-              geom.attributes.color.value[3] =
-                  Cesium.Color.floatToByte(opacity);
-            }
-          }
+        if (!prim.ready) continue;
+        var attrs = prim.getGeometryInstanceAttributes("id");
+        if (!attrs) continue;
+        color = attrs.color;
+        if (color) {
+          //FIXME This currently overrides style opacity with layer opacity
+          color[3] = Cesium.Color.floatToByte(opacity);
+          attrs.color = color;
         }
       }
     }
@@ -526,7 +522,8 @@ goog.require('olcs.core.OlLayerPrimitive');
         geometry: geometry,
         attributes: {
           color: Cesium.ColorGeometryInstanceAttribute.fromColor(color)
-        }
+        },
+        id: "id"
       });
     };
 
@@ -737,7 +734,8 @@ goog.require('olcs.core.OlLayerPrimitive');
     var outlinePrimitive = new Cesium.Primitive({
       // always update Cesium externs before adding a property
       geometryInstances: [new Cesium.GeometryInstance({
-        geometry: outlineGeometry
+        geometry: outlineGeometry,
+        id: "id"
       })],
       appearance: appearance
     });
