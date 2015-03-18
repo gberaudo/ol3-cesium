@@ -462,3 +462,18 @@ function viewOlExtent() {
 
 setTimeout(function() { ol3d.warmUp(75000, 5000); }, 2500);
 camera.constrainedAxisAngle = 3 * Math.PI / 8;
+
+map.on('click', function(evt) {
+  var pixel = new Cesium.Cartesian2(evt.pixel[0], evt.pixel[1]);
+  var target = olcs.core.pickOnTerrainOrEllipsoid(scene, pixel);
+  if (!target) return;
+  var csExtent = olcs.core.computeBoundingBoxAtTarget(scene, target, 20);
+  var olExtent = csExtent.map(function(carto) {
+    var coo = [
+      Cesium.Math.toDegrees(carto.longitude),
+      Cesium.Math.toDegrees(carto.latitude)];
+    return ol.proj.transform(coo, 'EPSG:4326', 'EPSG:21781');
+  });
+
+  console.log('Boxes:', target, 'cs', csExtent.toString(), 'ol', olExtent.toString());
+});
