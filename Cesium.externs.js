@@ -1858,6 +1858,14 @@ Cesium.Rectangle.fromDegrees = function(west, south, east, north, opt_result) {}
 
 
 /**
+ * @param {Array.<Cesium.Cartographic>} cartographics
+ * @param {Cesium.Rectangle=} opt_result
+ * @return {Cesium.Rectangle}
+ */
+Cesium.Rectangle.fromCartographicArray = function(cartographics, opt_result) {};
+
+
+/**
  * @typedef {{asynchronous: (boolean|undefined),
  *     height: (number|undefined),
  *     rectangle: (Cesium.Rectangle|undefined),
