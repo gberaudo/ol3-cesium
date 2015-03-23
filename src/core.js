@@ -1125,7 +1125,7 @@ goog.require('olcs.core.OlLayerPrimitive');
     // then this function must return a custom material
     // More simply, could blend the colors like described in
     // http://en.wikipedia.org/wiki/Alpha_compositing
-    return style[0];
+    return style.length > 0 ? style[0] : null;
   };
 
 

@@ -31,13 +31,14 @@ goog.inherits(olcs.core.OlLayerPrimitive, Cesium.PrimitiveCollection);
 
 /**
  * Convert an OpenLayers feature to Cesium primitive collection.
- * @param {!ol.layer.Vector} layer
+ * @param {!ol.style.StyleFunction} defaultStyleFn
  * @param {!ol.View} view
  * @param {!ol.Feature} feature
  * @return {Cesium.Primitive}
  * @api
  */
-olcs.core.OlLayerPrimitive.prototype.convert = function(layer, view, feature) {
+olcs.core.OlLayerPrimitive.prototype.convert = function(
+    defaultStyleFn, view, feature) {
   var proj = view.getProjection();
   var resolution = view.getResolution();
 
@@ -45,8 +46,7 @@ olcs.core.OlLayerPrimitive.prototype.convert = function(layer, view, feature) {
     return null;
   }
 
-  var layerStyle = layer.getStyleFunction();
-  var style = olcs.core.computePlainStyle(feature, layerStyle, resolution);
+  var style = olcs.core.computePlainStyle(feature, defaultStyleFn, resolution);
 
   if (!style) {
     // only 'render' features with a style

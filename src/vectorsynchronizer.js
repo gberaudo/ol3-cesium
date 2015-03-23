@@ -83,7 +83,7 @@ olcs.VectorSynchronizer.prototype.createSingleCounterpart = function(olLayer) {
 
   var onAddFeature = function(feature) {
     goog.asserts.assertInstanceof(olLayer, ol.layer.Vector);
-    var prim = csPrimitives.convert(olLayer, view, feature);
+    var prim = csPrimitives.convert(olLayer.getStyleFunction(), view, feature);
     if (prim) {
       featurePrimitiveMap[goog.getUid(feature)] = prim;
       csPrimitives.add(prim);
