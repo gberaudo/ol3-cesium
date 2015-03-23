@@ -732,7 +732,8 @@ goog.require('olcs.core.OlLayerPrimitive');
     var nearFarScalar = new Cesium.NearFarScalar(1000, 1.0, 1e6, 0);
     for (var i = 0; i < positions.length; ++i) {
       var position = positions[i];
-      goog.asserts.assertInstanceof(image, HTMLCanvasElement);
+      goog.asserts.assert(image instanceof HTMLCanvasElement ||
+          image instanceof HTMLImageElement);
       goog.asserts.assert(!goog.isNull(position));
       billboards.add({
         // always update Cesium externs before adding a property
