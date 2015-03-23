@@ -717,6 +717,13 @@ goog.require('olcs.core.OlLayerPrimitive');
     return addTextStyle(olGeometry, olStyle, primitives);
   };
 
+
+  /**
+   * @param {!ol.geom.LineString} olGeometry
+   * @param {!ol.proj.Projection|string} projection
+   * @param {!ol.style.Style} olStyle
+   * @return {!Cesium.BillboardCollection}
+   */
   olcs.core.experimentalLineToCesiumBillboards = function(olGeometry,
       projection, olStyle) {
     olGeometry = olGeometryCloneTo4326(olGeometry, projection);
@@ -963,7 +970,18 @@ goog.require('olcs.core.OlLayerPrimitive');
       case 'MultiLineString':
         geometry = /** @type {!ol.geom.MultiLineString} */ (geometry);
         subgeos = geometry.getLineStrings();
-        return accumulate(subgeos, olcs.core.olLineStringGeometryToCesium);
+        if (olStyle.getImage()) {
+          var both = new Cesium.PrimitiveCollection();
+          [
+            olcs.core.experimentalLineToCesiumBillboards,
+            olcs.core.olLineStringGeometryToCesium
+          ].forEach(function(functor) {
+            both.add(accumulate(subgeos, functor));
+          });
+          return both;
+        } else {
+          return accumulate(subgeos, olcs.core.olLineStringGeometryToCesium);
+        }
       case 'MultiPolygon':
         geometry = /** @type {!ol.geom.MultiPolygon} */ (geometry);
         subgeos = geometry.getPolygons();
