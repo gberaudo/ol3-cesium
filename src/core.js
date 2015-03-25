@@ -970,17 +970,25 @@ goog.require('olcs.core.OlLayerPrimitive');
       case 'MultiLineString':
         geometry = /** @type {!ol.geom.MultiLineString} */ (geometry);
         subgeos = geometry.getLineStrings();
+        /** @type {!ol.geom.Geometry} */ var c1;
+        /** @type {!ol.geom.Geometry} */ var c2;
         if (olStyle.getImage()) {
+          c1 = accumulate(
+              subgeos, olcs.core.experimentalLineToCesiumBillboards);
+        }
+        if (olStyle.getStroke()) {
+          c2 = accumulate(subgeos, olcs.core.olLineStringGeometryToCesium);
+        }
+
+        if (c1 && c2) {
           var both = new Cesium.PrimitiveCollection();
-          [
-            olcs.core.experimentalLineToCesiumBillboards,
-            olcs.core.olLineStringGeometryToCesium
-          ].forEach(function(functor) {
-            both.add(accumulate(subgeos, functor));
-          });
+          both.add(c1);
+          both.add(c2);
           return both;
+        } else if (c1) {
+          return c1;
         } else {
-          return accumulate(subgeos, olcs.core.olLineStringGeometryToCesium);
+          return c2;
         }
       case 'MultiPolygon':
         geometry = /** @type {!ol.geom.MultiPolygon} */ (geometry);
