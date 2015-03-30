@@ -9,8 +9,11 @@ var useCustomSynchronizer = false;
 var displayOverlay = true;
 
 var extent = [420000, 30000, 900000, 350000];
+var resolutions = [4000,3750,3500,3250,3000,2750,2500,2250,2000,1750,1500,1250,1000,750,650,500,250,100,50,20,10,5,2.5,2,1.5,1];
+var clusterResolutions = [0, 5, 10,20,50,100,250,500,650,750,1000,1250,1500,1750,2000,2250,2500,2750,3000,3250,3500,3750,4000];
+var clusterResolutions = [0, 20, 100, 250, 500, 1000, 1500, 2000, 3000];
 var grid = new ol.tilegrid.TileGrid({
-    resolutions: [4000,3750,3500,3250,3000,2750,2500,2250,2000,1750,1500,1250,1000,750,650,500,250,100,50,20,10,5,2.5,2,1.5,1],
+    resolutions: resolutions,
     tileSize: 256,
     origin: [420000, 30000]
 });
@@ -66,7 +69,7 @@ var layers = [
 
 if (displayOverlay) {
   layers.push(olOverlayWander);
-  layers.push(olPOIOverlay);
+//  layers.push(olPOIOverlay);
 }
 
 
@@ -269,9 +272,9 @@ if (useCustomSynchronizer) {
 
 if (displayOverlay) {
   scene.imageryLayers.addImageryProvider(csWMSOverlay);
-  scene.imageryLayers.addImageryProvider(csWMSPOIOverlay);
+//  scene.imageryLayers.addImageryProvider(csWMSPOIOverlay);
 }
-scene.terrainProvider = terrainProvider;
+//scene.terrainProvider = terrainProvider;
 scene.globe.depthTestAgainstTerrain = true;
 scene.screenSpaceCameraController.minimumZoomDistance = 50;
 
@@ -472,3 +475,39 @@ map.on('click', function(evt) {
 
   console.log('Boxes:', target, 'cs', csExtent.toString(), 'ol', olExtent.toString());
 });
+
+
+var busSource = new ol.source.GeoJSON({
+    url: '../ol3/examples/data/dump_geojson_bus_fragments.json',
+    projection: 'EPSG:21781'
+});
+
+var clusterSource = new ol.source.StaticCluster({
+    distance: 40,
+    resolutionSteps : clusterResolutions,
+    source: busSource
+});
+
+var styleCache = {};
+var clusters = new ol.layer.Vector({
+  source: clusterSource,
+  style: function(feature, resolution) {
+    var size = feature.get('features').length;
+    var style = styleCache[size];
+    if (!style) {
+      style = [new ol.style.Style({
+        image: iconStyle.getImage(),
+        text: new ol.style.Text({
+          text: size.toString(),
+          fill: new ol.style.Fill({
+            color: '#fff'
+          })
+        })
+      })];
+      styleCache[size] = style;
+    }
+    return style;
+  }
+});
+
+map.addLayer(clusters);
