@@ -66,7 +66,7 @@ var layers = [
 
 if (displayOverlay) {
   layers.push(olOverlayWander);
-  layers.push(olPOIOverlay);
+//  layers.push(olPOIOverlay);
 }
 
 
@@ -272,9 +272,9 @@ if (useCustomSynchronizer) {
 
 if (displayOverlay) {
   scene.imageryLayers.addImageryProvider(csWMSOverlay);
-  scene.imageryLayers.addImageryProvider(csWMSPOIOverlay);
+//  scene.imageryLayers.addImageryProvider(csWMSPOIOverlay);
 }
-scene.terrainProvider = terrainProvider;
+//scene.terrainProvider = terrainProvider;
 scene.globe.depthTestAgainstTerrain = true;
 scene.screenSpaceCameraController.minimumZoomDistance = 50;
 
@@ -477,3 +477,46 @@ map.on('click', function(evt) {
 
   console.log('Boxes:', target, 'cs', csExtent.toString(), 'ol', olExtent.toString());
 });
+
+
+var busSource = new ol.source.GeoJSON({
+    url: '../ol3/examples/data/dump_geojson_bus_fragments.json',
+    projection: 'EPSG:21781'
+});
+
+var clusterSource = new ol.source.StaticCluster({
+    distance: 40,
+    source: busSource
+});
+
+var styleCache = {};
+var clusters = new ol.layer.Vector({
+  source: clusterSource,
+  style: function(feature, resolution) {
+    var size = feature.get('features').length;
+    var style = styleCache[size];
+    if (!style) {
+      style = [new ol.style.Style({
+        image: new ol.style.Circle({
+          radius: 10,
+          stroke: new ol.style.Stroke({
+            color: '#fff'
+          }),
+          fill: new ol.style.Fill({
+            color: '#3399CC'
+          })
+        }),
+        text: new ol.style.Text({
+          text: size.toString(),
+          fill: new ol.style.Fill({
+            color: '#fff'
+          })
+        })
+      })];
+      styleCache[size] = style;
+    }
+    return style;
+  }
+});
+
+map.addLayer(clusters);
