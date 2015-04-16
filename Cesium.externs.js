@@ -1288,6 +1288,8 @@ Cesium.optionsPolygonHierarchy;
 /**
  * @typedef {{
  * width: (number|undefined),
+ * height: (number|undefined),
+ * extrudedHeight: (number|undefined),
  * perPositionHeight: (boolean|undefined),
  * polygonHierarchy: !Cesium.optionsPolygonHierarchy
  * }}
@@ -1300,6 +1302,7 @@ Cesium.optionsPolygonOutlineGeometry;
  * positions: !Array.<Cesium.Cartesian3>,
  * height: (number|undefined),
  * extrudedHeight: (number|undefined),
+ * perPositionHeight: (boolean|undefined),
  * polygonHierarchy: !Cesium.optionsPolygonHierarchy
  * }}
  */

@@ -807,6 +807,15 @@ goog.require('olcs.core.OlLayerPrimitive');
   olcs.core.olPolygonGeometryToCesium = function(olGeometry, projection,
       olStyle) {
 
+    var base = olGeometry.get('base');
+    if (goog.isDef(base)) {
+      base = base + 50; // difference with ellipsoid
+      // see http://www.swisstopo.admin.ch/internet/swisstopo/en/home/apps/calc/navref.html
+    }
+    var extrude = olGeometry.get('extrude');
+    if (goog.isDef(extrude) && goog.isDef(base)) {
+      extrude = base + extrude;
+    }
     olGeometry = olGeometryCloneTo4326(olGeometry, projection);
     goog.asserts.assert(olGeometry.getType() == 'Polygon');
 
@@ -818,6 +827,7 @@ goog.require('olcs.core.OlLayerPrimitive');
 
     for (var i = 0; i < rings.length; ++i) {
       var olPos = rings[i].getCoordinates();
+
       var positions = olcs.core.ol4326CoordinateArrayToCsCartesians(olPos);
       goog.asserts.assert(positions && positions.length > 0);
       if (i == 0) {
@@ -834,12 +844,16 @@ goog.require('olcs.core.OlLayerPrimitive');
     var fillGeometry = new Cesium.PolygonGeometry({
       // always update Cesium externs before adding a property
       polygonHierarchy: polygonHierarchy,
+      height: extrude,
+      extrudedHeight: base,
       perPositionHeight: true
     });
 
     var outlineGeometry = new Cesium.PolygonOutlineGeometry({
       // always update Cesium externs before adding a property
       polygonHierarchy: hierarchy,
+      height: base,
+      extrudedHeight: extrude,
       perPositionHeight: true
     });
 
