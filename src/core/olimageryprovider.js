@@ -2,7 +2,6 @@ goog.provide('olcs.core.OLImageryProvider');
 
 goog.require('goog.events');
 goog.require('ol.proj');
-goog.require('ol.tilegrid.XYZ');
 
 
 
@@ -210,8 +209,7 @@ olcs.core.OLImageryProvider.prototype.requestImage = function(x, y, level) {
     // perform mapping of Cesium tile coordinates to ol3 tile coordinates
     var z_ = (this.tilingScheme_ instanceof Cesium.GeographicTilingScheme) ?
              (level + 1) : level;
-    var y_ = (this.source_.getTileGrid() instanceof ol.tilegrid.XYZ) ?
-             y : (y - (1 << level));
+    var y_ = y;
     y_ = -y_ - 1; // opposite indexing
     var url = tileUrlFunction([z_, x, y_], 1, this.projection_);
     return goog.isDef(url) ?
