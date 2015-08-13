@@ -11,11 +11,17 @@ goog.require('olcs.core');
  * ol3 raster layers to the given Cesium globe.
  * @param {!ol.Map} map
  * @param {!Cesium.Scene} scene
+ * @param {olcsx.RasterSynchronizerOptions=} opt_options
  * @constructor
  * @extends {olcs.AbstractSynchronizer.<Cesium.ImageryLayer>}
  * @api
  */
-olcs.RasterSynchronizer = function(map, scene) {
+olcs.RasterSynchronizer = function(map, scene, opt_options) {
+  goog.base(this, map, scene);
+
+  opt_options = goog.isDef(opt_options) ? opt_options : {
+    layerToCesiumImagery: undefined};
+
   /**
    * @type {!Cesium.ImageryLayerCollection}
    * @private
@@ -28,7 +34,17 @@ olcs.RasterSynchronizer = function(map, scene) {
    */
   this.ourLayers_ = new Cesium.ImageryLayerCollection();
 
-  goog.base(this, map, scene);
+  /**
+   * @type {
+   *   function(!ol.layer.Layer, ?ol.proj.Projection): ?Cesium.ImageryLayer
+   * }
+   * @private
+   */
+  this.layerToCesiumImagery_ = olcs.core.tileLayerToImageryLayer;
+  if (!!opt_options.layerToCesiumImagery) {
+    // Closures error with goog.isDef(opt_options.layerToCesiumImagery)
+    this.layerToCesiumImagery_ = opt_options.layerToCesiumImagery;
+  }
 };
 goog.inherits(olcs.RasterSynchronizer, olcs.AbstractSynchronizer);
 
@@ -65,12 +81,10 @@ olcs.RasterSynchronizer.prototype.removeAllCesiumObjects = function(destroy) {
  * @inheritDoc
  */
 olcs.RasterSynchronizer.prototype.createSingleCounterpart = function(olLayer) {
-  if (!(olLayer instanceof ol.layer.Tile)) {
-    return null;
-  }
-
   var viewProj = this.view.getProjection();
-  var cesiumObject = olcs.core.tileLayerToImageryLayer(olLayer, viewProj);
+
+  var cesiumObject = this.layerToCesiumImagery_(olLayer, viewProj);
+
   if (!goog.isNull(cesiumObject)) {
     olLayer.on(
         ['change:brightness', 'change:contrast', 'change:hue',

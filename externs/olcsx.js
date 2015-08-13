@@ -45,6 +45,22 @@ olcsx.OLCesiumOptions.prototype.createSynchronizers;
 
 
 /**
+ * @typedef {{
+ *   layerToCesiumImagery: ((function(!ol.layer.Layer, ?ol.proj.Projection): ?Cesium.ImageryLayer)|undefined)
+ * }}
+ * @api
+ */
+olcsx.RasterSynchronizerOptions;
+
+
+/**
+ * @type {function(!ol.layer.Layer, ?ol.proj.Projection): ?Cesium.ImageryLayer|undefined}
+ * @api
+ */
+olcsx.RasterSynchronizerOptions.prototype.layerToCesiumImagery;
+
+
+/**
  * Core namespace.
  * @type {Object}
  */
