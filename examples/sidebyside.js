@@ -20,4 +20,10 @@ var terrainProvider = new Cesium.CesiumTerrainProvider({
   url : '//cesiumjs.org/stk-terrain/tilesets/world/tiles'
 });
 scene.terrainProvider = terrainProvider;
+
 ol3d.setEnabled(true);
+setTimeout(function() {
+  // See comment about globe surface initialization
+  // in olcs.Camera.prototype.updateCamera_()
+  ol3d.getCamera().readFromView();
+}, 30);

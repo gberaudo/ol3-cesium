@@ -106,17 +106,18 @@ olcs.OLCesium = function(options) {
   this.scene_.camera.constrainedAxis = Cesium.Cartesian3.UNIT_Z;
 
   /**
-   * @type {!olcs.Camera}
-   * @private
-   */
-  this.camera_ = new olcs.Camera(this.scene_, this.map_);
-
-  /**
    * @type {!Cesium.Globe}
    * @private
    */
   this.globe_ = new Cesium.Globe(Cesium.Ellipsoid.WGS84);
   this.scene_.globe = this.globe_;
+
+  /**
+   * @type {!olcs.Camera}
+   * @private
+   */
+  this.camera_ = new olcs.Camera(this.scene_, this.map_);
+
   this.scene_.skyAtmosphere = new Cesium.SkyAtmosphere();
 
   var synchronizers = goog.isDef(options.createSynchronizers) ?

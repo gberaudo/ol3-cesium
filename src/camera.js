@@ -341,10 +341,11 @@ olcs.Camera.prototype.updateCamera_ = function() {
 
   var carto = new Cesium.Cartographic(goog.math.toRadians(ll[0]),
                                       goog.math.toRadians(ll[1]));
-  if (this.scene_.globe) {
-    var height = this.scene_.globe.getHeight(carto);
-    carto.height = goog.isDef(height) ? height : 0;
-  }
+
+  // globe.getHeight() may return undefined, notably when the globe surface is
+  // not ready. It may cause improper initialization where the 3D rectangle is
+  // very different from the 2D extent.
+  carto.height = this.scene_.globe.getHeight(carto) || 0;
 
   this.cam_.setView({
     positionCartographic: carto,
