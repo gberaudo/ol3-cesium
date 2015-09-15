@@ -28,7 +28,8 @@
     ],
     "compilation_level": "ADVANCED_OPTIMIZATIONS",
     "warning_level": "VERBOSE",
-    "output_wrapper": "(function(){%output%})();",
+    "language_in": "ECMASCRIPT5_STRICT",
+    "output_wrapper": "(function(){%output%}).call(window);",
     "use_types_for_optimization": true,
     "create_source_map": "dist/ol3cesium.js.map",
     "source_map_format": "V3"

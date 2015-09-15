@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.8 -
+
+* Changes
+  * Build language is now Ecmascript 5 strict.
+
 ## v1.8 - 2015-09-10
 
 * Breaking changes
