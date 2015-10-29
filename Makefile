@@ -123,13 +123,18 @@ dist/ol3cesium.js: build/ol3cesium.json $(SRC_JS_FILES) ol3/build/ol-externs.js 
 #	echo '//# sourceMappingURL=ol3cesium.js.map' >> dist/ol3cesium.js
 #	-ln -s .. dist/source
 
+ol3/build/timestamps/node-modules-timestamp: ol3/package.json
+	mkdir -p ol3/build/timestamps
+	(cd ol3 && npm install --production)
+	touch $@
+
 .PHONY: ol3/build/ol-externs.js
-ol3/build/ol-externs.js:
-	(cd ol3 && npm install && node tasks/generate-externs.js build/ol-externs.js)
+ol3/build/ol-externs.js: ol3/build/timestamps/node-modules-timestamp
+	(cd ol3 && node tasks/generate-externs.js build/ol-externs.js)
 
 .PHONY: ol3/build/olX
-ol3/build/olX:
-	(cd ol3 && npm install && make build)
+ol3/build/olX: ol3/build/timestamps/node-modules-timestamp
+	(cd ol3 && make build)
 
 cesium/node_modules/.bin/gulp: cesium/package.json
 	cd cesium && npm install
