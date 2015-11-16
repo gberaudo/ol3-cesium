@@ -403,7 +403,7 @@ olcs.OLCesium.prototype.setResolutionScale = function(value) {
     this.resolutionScale_ = Math.max(0, value);
     this.resolutionScaleChanged_ = true;
     if (this.autoRenderLoop_) {
-      this.autoRenderLoop_.restartRenderLoop();
+      this.autoRenderLoop_.restartRenderLoop(true);
     }
   }
 };

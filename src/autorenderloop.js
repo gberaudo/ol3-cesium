@@ -189,10 +189,10 @@ olcs.AutoRenderLoop.prototype.disable = function() {
 
 
 /**
- * @param {number} date
+ * @return {boolean} whether a rendering is needed
  */
-olcs.AutoRenderLoop.prototype.postRender = function(date) {
-  // We can safely stop rendering when:
+olcs.AutoRenderLoop.prototype.isRenderingNeeded = function() {
+  // Rendering is not needed when:
   //  - the camera position hasn't changed in over a second,
   //  - there are no tiles waiting to load, and
   //  - the clock is not animating
@@ -207,34 +207,64 @@ olcs.AutoRenderLoop.prototype.postRender = function(date) {
       camera.viewMatrix, 1e-5)) {
     this.lastCameraMoveTime_ = now;
   }
-
-  var cameraMovedInLastSecond = now - this.lastCameraMoveTime_ < 1000;
+  if (now - this.lastCameraMoveTime_ < 1000) {
+    // moved during last second
+    return true;
+  }
 
   var surface = scene.globe['_surface'];
   var tilesWaiting = !surface['_tileProvider'].ready ||
       surface['_tileLoadQueue'].length > 0 ||
       surface['_debug']['tilesWaitingForChildren'] > 0;
+  if (tilesWaiting) {
+    return true;
+  }
 
   var tweens = scene['tweens'];
-  if (!cameraMovedInLastSecond && !tilesWaiting && tweens.length == 0) {
+  if (tweens.length !== 0) {
+    return true;
+  }
+
+  return false;
+};
+
+
+/**
+ * @param {number} date
+ */
+olcs.AutoRenderLoop.prototype.postRender = function(date) {
+  // We can safely stop rendering when:
+  //  - the camera position hasn't changed in over a second,
+  //  - there are no tiles waiting to load, and
+  //  - the clock is not animating
+  //  - there are no tweens in progress
+
+  var needRendering = this.isRenderingNeeded();
+
+  var camera = this.scene_.camera;
+  Cesium.Matrix4.clone(camera.viewMatrix, this.lastCameraViewMatrix_);
+
+  if (!needRendering) {
     if (this.verboseRendering) {
       console.log('stopping rendering @ ' + Date.now());
     }
     this.ol3d.setBlockCesiumRendering(true);
     this.stoppedRendering = true;
   }
-
-  Cesium.Matrix4.clone(camera.viewMatrix, this.lastCameraViewMatrix_);
 };
 
 
 /**
  * Restart render loop.
- * Force a restart of the render loop.
+ * @param {boolean=} opt_force restart even if no change detected
  * @api
  */
-olcs.AutoRenderLoop.prototype.restartRenderLoop = function() {
-  this.notifyRepaintRequired();
+olcs.AutoRenderLoop.prototype.restartRenderLoop = function(opt_force) {
+  if (opt_force || this.isRenderingNeeded()) {
+    this.notifyRepaintRequired();
+  } else if (this.verboseRendering) {
+    console.log('skipped render loop restart @' + Date.now());
+  }
 };
 
 

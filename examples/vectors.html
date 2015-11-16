@@ -14,7 +14,7 @@
     <div><input type="button" value="Enable/disable Cesium"
       onclick="javascript:ol3d.setEnabled(!ol3d.getEnabled())" /></div>
     <div><input type="button" value="Toggle depth test"
-      onclick="javascript:scene.globe.depthTestAgainstTerrain = !scene.globe.depthTestAgainstTerrain; ol3d.getAutoRenderLoop().restartRenderLoop()" /></div>
+      onclick="javascript:scene.globe.depthTestAgainstTerrain = !scene.globe.depthTestAgainstTerrain; ol3d.getAutoRenderLoop().restartRenderLoop(true)" /></div>
     <div><input type="button" value="Toggle circle style"
       onclick="javascript:toggleStyle()" /></div>
     <div><input type="button" value="Add/remove one vector layer"
