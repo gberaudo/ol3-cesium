@@ -16,6 +16,7 @@ goog.require('olcs.obj');
  * @param {!Cesium.Scene} scene Cesium scene.
  * @constructor
  * @api
+ * @struct
  */
 olcs.FeatureConverter = function(scene) {
 
