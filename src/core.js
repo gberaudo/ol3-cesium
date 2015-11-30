@@ -377,13 +377,13 @@ olcs.core.tileLayerToImageryLayer = function(olLayer, viewProj) {
     if (goog.isNull(projection)) {
       // if not explicit, assume the same projection as view
       projection = viewProj;
-    } else if (projection !== viewProj) {
+    } else if (projection !== viewProj && !ol.ENABLE_RASTER_REPROJECTION) {
       return null; // do not sync layers with projections different than view
     }
 
     var is3857 = projection === ol.proj.get('EPSG:3857');
     var is4326 = projection === ol.proj.get('EPSG:4326');
-    if (is3857 || is4326) {
+    if (is3857 || is4326 || ol.ENABLE_RASTER_REPROJECTION) {
       provider = new olcs.core.OLImageryProvider(source, viewProj);
     } else {
       return null;

@@ -145,9 +145,14 @@ olcs.core.OLImageryProvider.prototype.handleSourceChanged_ = function() {
       this.tilingScheme_ = new Cesium.GeographicTilingScheme();
     } else if (this.projection_ == ol.proj.get('EPSG:3857')) {
       this.tilingScheme_ = new Cesium.WebMercatorTilingScheme();
+    } else if (ol.ENABLE_RASTER_REPROJECTION) {
+      this.tilingScheme_ = new Cesium.GeographicTilingScheme();
+      this.projection_ = ol.proj.get('EPSG:4326'); // reproject
     } else {
       return;
     }
+
+    // FIXME: should intersect with the source extent
     this.rectangle_ = this.tilingScheme_.rectangle;
 
     var credit =
@@ -211,22 +216,37 @@ goog.exportProperty(olcs.core.OLImageryProvider.prototype, 'getTileCredits',
  * @override
  */
 olcs.core.OLImageryProvider.prototype.requestImage = function(x, y, level) {
-  var tileUrlFunction = this.source_.getTileUrlFunction();
-  if (!goog.isNull(tileUrlFunction) && !goog.isNull(this.projection_)) {
+  // Perform mapping of Cesium tile coordinates to ol3 tile coordinates:
+  // 1) Cesium zoom level 0 is OpenLayers zoom level 1 for EPSG:4326
+  var z_ = this.tilingScheme_ instanceof Cesium.GeographicTilingScheme ?
+      level + 1 : level;
+  // 2) OpenLayers tile coordinates increase from bottom to top
+  var y_ = -y - 1;
 
-    // Perform mapping of Cesium tile coordinates to ol3 tile coordinates:
-    // 1) Cesium zoom level 0 is OpenLayers zoom level 1 for EPSG:4326
-    var z_ = this.tilingScheme_ instanceof Cesium.GeographicTilingScheme ?
-        level + 1 : level;
-    // 2) OpenLayers tile coordinates increase from bottom to top
-    var y_ = -y - 1;
+  var pixelRatio = 1; // FIXME: what about pixel ratio?
+  var tile = this.source.getTile(z_, x, y_, pixelRatio, this.projection_);
 
-    var url = tileUrlFunction([z_, x, y_], 1, this.projection_);
-    return goog.isDef(url) ?
-           Cesium.ImageryProvider.loadImage(this, url) : this.emptyCanvas_;
+  tile.load();
+
+  var state = tile.getState();
+  if (state === ol.TileState.LOADED || state === ol.TileState.EMPTY) {
+    return tile.getImage() || undefined;
+  } else if (state === ol.TileState.ERROR) {
+    return undefined; // let Cesium continue retrieving later
   } else {
-    // return empty canvas to stop Cesium from retrying later
-    return this.emptyCanvas_;
+    var promise = new Promise(function(resolve, reject) {
+      var unlisten = tile.listen(goog.events.EventType.CHANGE, function(evt) {
+        var state = tile.getState();
+        if (state === ol.TileState.LOADED || state === ol.TileState.EMPTY) {
+          resolve(tile.getImage() || undefined);
+          goog.events.unlistenByKey(unlisten);
+        } else if (state === ol.TileState.ERROR) {
+          resolve(undefined); // let Cesium continue retrieving later
+          goog.events.unlistenByKey(unlisten);
+        }
+      });
+    });
+    return promise;
   }
 };
 goog.exportProperty(olcs.core.OLImageryProvider.prototype, 'requestImage',
