@@ -14,6 +14,7 @@ goog.require('ol.proj');
  *                                               is not defined.
  * @constructor
  * @extends {Cesium.ImageryProvider}
+ * @struct
  */
 olcs.core.OLImageryProvider = function(source, opt_fallbackProj) {
   // Do not goog.inherit() or call super constructor from
@@ -31,6 +32,24 @@ olcs.core.OLImageryProvider = function(source, opt_fallbackProj) {
    * @private
    */
   this.projection_ = null;
+
+  /**
+   * @type {Cesium.Rectangle|undefined}
+   * @private
+   */
+  this.rectangle_ = undefined;
+
+  /**
+   * @type {Cesium.TilingScheme|undefined}
+   * @private
+   */
+  this.tilingScheme_ = undefined;
+
+  /**
+   * @type {Cesium.Credit|undefined}
+   * @private
+   */
+  this.credit_ = undefined;
 
   /**
    * @type {?ol.proj.Projection}
@@ -223,10 +242,21 @@ olcs.core.OLImageryProvider.prototype.requestImage = function(x, y, level) {
   // 2) OpenLayers tile coordinates increase from bottom to top
   var y_ = -y - 1;
 
+  var tilegrid = this.source_.getTileGridForProjection(this.projection_);
+  if (z_ < tilegrid.getMinZoom() || z_ > tilegrid.getMaxZoom()) {
+    return this.emptyCanvas_; // no data
+  }
+
   var pixelRatio = 1; // FIXME: what about pixel ratio?
-  var tile = this.source.getTile(z_, x, y_, pixelRatio, this.projection_);
+  var tile = this.source_.getTile(z_, x, y_, pixelRatio, this.projection_);
 
   tile.load();
+
+  var image = tile.getImage();
+  if (!image || !image.src) {
+    return this.emptyCanvas_; // no data
+  }
+
 
   var state = tile.getState();
   if (state === ol.TileState.LOADED || state === ol.TileState.EMPTY) {
