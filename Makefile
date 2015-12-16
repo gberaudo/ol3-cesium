@@ -34,7 +34,7 @@ help:
 npm-install: .build/node_modules.timestamp
 
 .PHONY: serve
-serve: npm-install cesium/Build/Cesium/Cesium.js
+serve: npm-install cesium/Build/Cesium/Cesium.js cesium/Build/CesiumUnminified/Cesium.js
 	node build/serve.js
 
 .PHONY: dist
@@ -128,6 +128,16 @@ dist/ol3cesium.js: build/ol3cesium.json $(SRC_JS_FILES) Cesium.externs.js build/
 
 cesium/node_modules/.bin/gulp: cesium/package.json
 	cd cesium && npm install
+
+# Only generated when cesium/Build/Cesium/Cesium.js does not exist
+# or CHANGES.md changed
+ifndef NO_CESIUM
+cesium/Build/CesiumUnminified/Cesium.js: cesium/CHANGES.md cesium/node_modules/.bin/gulp
+	(cd cesium && node_modules/.bin/gulp generateStubs combine)
+else
+cesium/Build/CesiumUnminified/Cesium.js:
+	mkdir -p cesium/Build/CesiumUnminified/
+endif
 
 # Only generated when cesium/Build/Cesium/Cesium.js does not exist
 # or CHANGES.md changed
