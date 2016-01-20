@@ -211,7 +211,7 @@ goog.exportProperty(olcs.core.OLImageryProvider.prototype, 'getTileCredits',
  * @override
  */
 olcs.core.OLImageryProvider.prototype.requestImage = function(x, y, level) {
-  var tileUrlFunction = this.source_.getTileUrlFunction();
+  var tileUrlFunction = this.source_.getTileUrlFunction().bind(this.source_);
   if (!goog.isNull(tileUrlFunction) && !goog.isNull(this.projection_)) {
 
     // Perform mapping of Cesium tile coordinates to ol3 tile coordinates:
