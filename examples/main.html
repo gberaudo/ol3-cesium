@@ -10,8 +10,11 @@
   <body>
     <div id="map" style="width:600px;height:400px;"></div>
     <input type="button" value="Enable/disable" onclick="javascript:ol3d.setEnabled(!ol3d.getEnabled())" />
+    <input type="button" value="Transition to 3D" onclick="javascript:transitionMgr.switchTo3D(40)" />
+    <input type="button" value="Transition to 2D" onclick="javascript:transitionMgr.switchTo2D()" />
     <script src="../cesium/Build/Cesium/Cesium.js"></script>
     <script src="/@loader"></script>
+    <script src="params.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

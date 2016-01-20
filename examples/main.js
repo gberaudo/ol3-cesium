@@ -23,3 +23,6 @@ var terrainProvider = new Cesium.CesiumTerrainProvider({
 });
 scene.terrainProvider = terrainProvider;
 
+var enable3D = getBoolSearchParam('enable3D', true);
+ol3d.setEnabled(enable3D);
+var transitionMgr = olcs.TransitionManager.createAroundBottomPoint(ol3d);
