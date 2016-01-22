@@ -39,7 +39,8 @@ olcs.DragBox = function(opt_options) {
    * @private
    * @type {Cesium.Scene}
    */
-  this.scene_ = null;
+  this.scene_ = options['scene'];
+  goog.asserts.assert(this.scene_.canvas);
 
   /**
    * @private
@@ -49,16 +50,19 @@ olcs.DragBox = function(opt_options) {
 
   /**
    * @private
-   * @type {Cesium.RectanglePrimitive}
+   * @type {Cesium.Rectangle}
    */
-  this.box_ = new Cesium.RectanglePrimitive({
-    asynchronous: false,
-    rectangle: new Cesium.Rectangle(),
-    material: Cesium.Material.fromType(Cesium.Material.ColorType)
-  });
+  this.rectangle_ = Cesium.Rectangle.fromDegrees(-140.0, 30.0, -100.0, 40.0);
+  /**
+   * @private
+   * @type {Cesium.Primitive}
+   */
+  this.box_ = this.createRectanglePrimitive(this.rectangle_);
+  this.scene_.primitives.add(this.box_);
 
-  // FIXME: configurable
-  this.box_.material.uniforms.color = new Cesium.Color(0.0, 0.0, 1.0, 0.5);
+  this.handler_ = new Cesium.ScreenSpaceEventHandler(this.scene_.canvas);
+  this.handler_.setInputAction(this.handleMouseDown.bind(this),
+        Cesium.ScreenSpaceEventType.LEFT_DOWN, this.modifier_);
 
   /**
    * @private
@@ -75,6 +79,33 @@ olcs.DragBox = function(opt_options) {
 
 };
 goog.inherits(olcs.DragBox, goog.events.EventTarget);
+
+
+/**
+ * @param {Cesium.Rectangle} rectangle
+ * @return {Cesium.Primitive}
+ */
+olcs.DragBox.prototype.createRectanglePrimitive = function(rectangle) {
+  var rectangleInstance = new Cesium.GeometryInstance({
+    geometry : new Cesium.RectangleGeometry({
+      rectangle : rectangle,
+      vertexFormat : Cesium.PerInstanceColorAppearance.VERTEX_FORMAT
+    }),
+    id : 'rectangle',
+    attributes : {
+      color : new Cesium.ColorGeometryInstanceAttribute(0.0, 0.0, 1.0, 0.5)
+    }
+  });
+
+  return new Cesium.Primitive({
+    asynchronous: false,
+    allowPicking: false,
+    cull: false,
+    releaseGeometryInstances: false,
+    geometryInstances : [rectangleInstance],
+    appearance : new Cesium.PerInstanceColorAppearance()
+  });
+}
 
 
 /**
@@ -99,11 +130,9 @@ olcs.DragBox.prototype.handleMouseDown = function(event) {
           Cesium.ScreenSpaceEventType.LEFT_UP, this.modifier_);
     }
     var cartographic = ellipsoid.cartesianToCartographic(intersection);
-    var rectangle = this.box_.rectangle;
+    var rectangle = this.rectangle_;
     rectangle.north = rectangle.south = cartographic.latitude;
     rectangle.east = rectangle.west = cartographic.longitude;
-    this.box_.height = cartographic.height;
-
     this.box_.show = true;
 
     this.dispatchEvent({
@@ -111,10 +140,6 @@ olcs.DragBox.prototype.handleMouseDown = function(event) {
       position: cartographic
     });
 
-    goog.asserts.assert(!goog.isNull(this.box_));
-    if (!this.scene_.primitives.contains(this.box_)) {
-      this.scene_.primitives.add(this.box_);
-    }
     this.scene_.screenSpaceCameraController.enableInputs = false;
 
     this.startPosition_ = cartographic;
@@ -130,18 +155,18 @@ olcs.DragBox.prototype.handleMouseMove = function(event) {
   var ray = this.scene_.camera.getPickRay(event.endPosition);
   var intersection = this.scene_.globe.pick(ray, this.scene_);
   if (goog.isDef(intersection)) {
+    var rectangle = this.rectangle_;
     var cartographic = ellipsoid.cartesianToCartographic(intersection);
-    this.box_.height = Math.max(this.box_.height, cartographic.height);
 
     if (cartographic.latitude < this.startPosition_.latitude) {
-      this.box_.rectangle.south = cartographic.latitude;
+      rectangle.south = cartographic.latitude;
     } else {
-      this.box_.rectangle.north = cartographic.latitude;
+      rectangle.north = cartographic.latitude;
     }
     if (cartographic.longitude < this.startPosition_.longitude) {
-      this.box_.rectangle.west = cartographic.longitude;
+      rectangle.west = cartographic.longitude;
     } else {
-      this.box_.rectangle.east = cartographic.longitude;
+      rectangle.east = cartographic.longitude;
     }
   }
 };
@@ -174,30 +199,6 @@ olcs.DragBox.prototype.handleMouseUp = function(event) {
     }
   }
   this.scene_.screenSpaceCameraController.enableInputs = true;
-};
-
-
-/**
- * @param {Cesium.Scene} scene Scene.
- * @api
- */
-olcs.DragBox.prototype.setScene = function(scene) {
-  if (goog.isNull(scene)) {
-    goog.asserts.assert(!goog.isNull(this.box_));
-    if (this.scene_.primitives.contains(this.box_)) {
-      this.scene_.primitives.remove(this.box_);
-    }
-    if (!goog.isNull(this.handler_)) {
-      this.handler_.destroy();
-      this.handler_ = null;
-    }
-  } else {
-    goog.asserts.assert(scene.canvas);
-    this.handler_ = new Cesium.ScreenSpaceEventHandler(scene.canvas);
-    this.handler_.setInputAction(this.handleMouseDown.bind(this),
-        Cesium.ScreenSpaceEventType.LEFT_DOWN, this.modifier_);
-  }
-  this.scene_ = scene;
 };
 
 

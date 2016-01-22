@@ -18,8 +18,8 @@ var terrainProvider = new Cesium.CesiumTerrainProvider({
 });
 scene.terrainProvider = terrainProvider;
 
-var box = new olcs.DragBox();
-box.setScene(scene);
+var box = new olcs.DragBox({
+  scene: scene});
 
 box.listen('boxstart', function(event) {
   console.log('boxstart', event);
