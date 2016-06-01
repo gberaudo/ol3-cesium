@@ -1,0 +1,70 @@
+{
+  "exports": ["*"],
+  "src": [
+    "../ngeo/.build/templatecache.js",
+    "../ngeo/src/**/*.js",
+    "src/**/*.js",
+    "ol3/src/**/*.js",
+    "ol3/build/ol.ext/*.js"
+  ],
+  "compile": {
+    "externs": [
+      "externs/olcsx.js",
+      "ol3/externs/oli.js",
+      "ol3/externs/olx.js",
+      "ol3/externs/cartodb.js",
+      "ol3/externs/proj4js.js",
+      "ol3/externs/tilejson.js",
+      "ol3/externs/topojson.js",
+      "ol3/externs/esrijson.js",
+      "ol3/externs/geojson.js",
+      "ol3/externs/bingmaps.js",
+      "ol3/externs/closure-compiler.js",
+      "Cesium.externs.js",
+      "../ngeo/externs/angular-gettext.js",
+      "../ngeo/externs/d3.js",
+      "../ngeo/externs/typeahead.js",
+      "../ngeo/externs/twbootstrap.js",
+      "../ngeo/externs/closure-compiler.js",
+      "../ngeo/externs/jqueryui.js",
+      "../ngeo/externs/angular-dynamic-locale.js",
+      "../ngeo/.build/externs/angular-1.5.js",
+      "../ngeo/.build/externs/angular-1.5-q_templated.js",
+      "../ngeo/.build/externs/angular-1.5-http-promise_templated.js",
+      "../ngeo/.build/externs/jquery-1.9.js",
+      "../ngeo/externs/ngeox.js",
+      "../ngeo/externs/mapfish-print-v3.js"
+
+    ],
+    "define": [
+      "goog.array.ASSUME_NATIVE_FUNCTIONS=true",
+      "goog.DEBUG=false",
+      "ol.ENABLE_DOM=false",
+      "ol.ENABLE_WEBGL=false"
+    ],
+    "js": [
+    ],
+    "jscomp_error": [
+      "*"
+    ],
+    "jscomp_off": [
+      "useOfGoogBase",
+      "lintChecks",
+      "analyzerChecks"
+    ],
+    "extra_annotation_name": [
+      "api", "observable", "ngdoc", "ngname", "htmlAttribute"
+    ],
+    "compilation_level": "ADVANCED_OPTIMIZATIONS",
+    "language_in": "ECMASCRIPT5_STRICT",
+    "language_out": "ECMASCRIPT5_STRICT",
+    "warning_level": "VERBOSE",
+    "generate_exports": true,
+    "output_wrapper": "(function(){%output%}).call(window);",
+    "angular_pass": true,
+    "export_local_property_definitions": true,
+    "use_types_for_optimization": true,
+    "create_source_map": "dist/ol3cesium.js.map",
+    "source_map_format": "V3"
+  }
+}

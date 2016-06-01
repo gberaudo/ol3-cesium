@@ -50,7 +50,7 @@ dist-apidoc:
 
 .PHONY: lint
 lint: .build/node_modules.timestamp .build/eslint.timestamp
-	@build/check-no-goog.sh
+	#@build/check-no-goog.sh
 
 .build/geojsonhint.timestamp: $(EXAMPLES_GEOJSON_FILES)
 	$(foreach file,$?, echo $(file); node_modules/geojsonhint/bin/geojsonhint $(file);)
@@ -111,7 +111,7 @@ ol3/build/ol.ext/rbush.js: ol3/node_modules/rbush/package.json
 
 
 # A sourcemap is prepared, the source is exected to be deployed in 'source' directory
-dist/ol3cesium.js: build/ol3cesium.json $(SRC_JS_FILES) Cesium.externs.js build/build.js npm-install ol3/build/ol.ext/rbush.js
+dist/ol3cesium.js: build/ngeool3cesium.json $(SRC_JS_FILES) Cesium.externs.js build/build.js npm-install ol3/build/ol.ext/rbush.js
 	mkdir -p $(dir $@)
 	node build/build.js $< $@
 	$(SEDI) 's!$(shell pwd)/dist!source!g' dist/ol3cesium.js.map
