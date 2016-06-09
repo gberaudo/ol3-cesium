@@ -1045,6 +1045,17 @@ Cesium.Polygon.prototype.show;
  */
 Cesium.Polygon.prototype.update = function() {};
 
+/**
+ * @typedef {{
+ *   show: (boolean|undefined),
+ *   width: (number|undefined),
+ *   loop: (number|undefined),
+ *   material: (Cesium.Material|undefined),
+ *   positions: (Array.<!Cesium.Cartesian3>|undefined),
+ *   id: (Object|undefined)
+ * }}
+ */
+Cesium.optionsPolylineCollectionAdd;
 
 
 /**
@@ -1054,10 +1065,10 @@ Cesium.PolylineCollection = function() {};
 
 
 /**
- * @param {Object=} opt_opts .
+ * @param {!Cesium.optionsPolylineCollectionAdd} opts .
  * @return {!Cesium.Polyline} .
  */
-Cesium.PolylineCollection.prototype.add = function(opt_opts) {};
+Cesium.PolylineCollection.prototype.add = function(opts) {};
 
 
 /**
@@ -1083,23 +1094,36 @@ Cesium.Material.ColorType;
  */
 Cesium.Polyline = function() {};
 
+/**
+ * @type {boolean}
+ */
+Cesium.Polyline.prototype.show;
 
 /**
- * @type {!Array.<!Cesium.Cartesian3>}
+ * @type {number}
  */
-Cesium.Polyline.prototype.positions;
+Cesium.Polyline.prototype.width;
 
+/**
+ * @type {boolean}
+ */
+Cesium.Polyline.prototype.loop;
 
 /**
  * @type {!Cesium.Material}
  */
 Cesium.Polyline.prototype.material;
 
+/**
+ * @type {!Array.<!Cesium.Cartesian3>}
+ */
+Cesium.Polyline.prototype.positions;
 
 /**
- * @type {number}
+ * @type {Object}
  */
-Cesium.Polyline.prototype.width;
+Cesium.Polyline.prototype.id;
+
 
 /**
  * @constructor
@@ -3207,3 +3231,26 @@ Cesium.TaskProcessor = function(workerName, opt_maximumActiveTasks) {};
  * @return {boolean}
  */
 Cesium.TaskProcessor.prototype.isDestroyed = function() {};
+
+
+/**
+ * @type {Object}
+ */
+Cesium.PolylinePipeline;
+
+
+/**
+ * @typedef {{
+ *   positions: !Array.<!Cesium.Cartesian3>,
+ *   height: (Array.<!number>|undefined),
+ *   granularity: (number|undefined)
+ * }}
+ */
+Cesium.optionsPolylinePipelineGenerateArc;
+
+
+/**
+ * @param {!Cesium.optionsPolylinePipelineGenerateArc} options
+ * @return {!Array.<!Cesium.Cartesian3>}
+ */
+Cesium.PolylinePipeline.generateCartesianArc = function(options) {};

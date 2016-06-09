@@ -70,7 +70,7 @@ olcs.FeatureConverter.prototype.onRemoveOrClearFeature_ = function(evt) {
 /**
  * @param {ol.layer.Vector|ol.layer.Image} layer
  * @param {!ol.Feature} feature Ol3 feature.
- * @param {!Cesium.Primitive|Cesium.Label|Cesium.Billboard} primitive
+ * @param {!Cesium.Primitive|Cesium.PolylineCollection|Cesium.Label|Cesium.Billboard} primitive
  * @protected
  */
 olcs.FeatureConverter.prototype.setReferenceForPicking = function(layer, feature, primitive) {
@@ -230,7 +230,7 @@ olcs.FeatureConverter.prototype.wrapFillAndOutlineGeometries = function(layer, f
  * @param {!ol.Feature} feature Ol3 feature..
  * @param {!ol.geom.Geometry} geometry
  * @param {!ol.style.Style} style
- * @param {!Cesium.Primitive} primitive current primitive
+ * @param {!Cesium.Primitive|!Cesium.PolylineCollection} primitive current primitive
  * @return {!Cesium.PrimitiveCollection}
  * @protected
  */
@@ -341,33 +341,63 @@ olcs.FeatureConverter.prototype.olLineStringGeometryToCesium = function(layer, f
   olGeometry = olcs.core.olGeometryCloneTo4326(olGeometry, projection);
   goog.asserts.assert(olGeometry.getType() == 'LineString');
 
-  var positions = olcs.core.ol4326CoordinateArrayToCsCartesians(
-      olGeometry.getCoordinates());
+  var olCoordinates = olGeometry.getCoordinates();
+  var positions = olcs.core.ol4326CoordinateArrayToCsCartesians(olCoordinates);
 
-  var appearance = new Cesium.PolylineMaterialAppearance({
-    // always update Cesium externs before adding a property
-    material: this.olStyleToCesium(feature, olStyle, true)
-  });
+  var material = this.olStyleToCesium(feature, olStyle, true);
 
-  // Handle both color and width
-  var outlineGeometry = new Cesium.PolylineGeometry({
-    // always update Cesium externs before adding a property
-    positions: positions,
-    width: this.extractLineWidthFromOlStyle(olStyle),
-    vertexFormat: appearance.vertexFormat
-  });
+  var width = olStyle.getStroke() ? olStyle.getStroke().getWidth() : 1;
+  var maximumAliasedLineWidth = this.scene.maximumAliasedLineWidth;
+  maximumAliasedLineWidth = 1;
+  if (width <= maximumAliasedLineWidth) {
+    var appearance = new Cesium.PolylineMaterialAppearance({
+      // always update Cesium externs before adding a property
+      material: material
+    });
 
-  var outlinePrimitive = new Cesium.Primitive({
-    // always update Cesium externs before adding a property
-    geometryInstances: new Cesium.GeometryInstance({
-      geometry: outlineGeometry
-    }),
-    appearance: appearance
-  });
-  this.setReferenceForPicking(layer, feature, outlinePrimitive);
+    // Handle both color and width
+    var outlineGeometry = new Cesium.PolylineGeometry({
+      // always update Cesium externs before adding a property
+      positions: positions,
+      width: this.extractLineWidthFromOlStyle(olStyle),
+      vertexFormat: appearance.vertexFormat
+    });
 
-  return this.addTextStyle(layer, feature, olGeometry, olStyle,
-      outlinePrimitive);
+    var outlinePrimitive = new Cesium.Primitive({
+      // always update Cesium externs before adding a property
+      geometryInstances: new Cesium.GeometryInstance({
+        geometry: outlineGeometry
+      }),
+      appearance: appearance
+    });
+    this.setReferenceForPicking(layer, feature, outlinePrimitive);
+    return this.addTextStyle(layer, feature, olGeometry, olStyle, outlinePrimitive);
+  } else {
+    // MS Windows only support line width of 1 pixel.
+    // As a workaround, n lines are generated.
+
+    var height;
+    if (olCoordinates[0].length > 2) {
+      // Cesium does not extract the heights so we prepare them here
+      height = olCoordinates.map(function(c) {
+        return c[2];
+      });
+    }
+    positions = Cesium.PolylinePipeline.generateCartesianArc({
+      positions: positions,
+      height: height
+    });
+    var polylines = new Cesium.PolylineCollection();
+    polylines.add({
+      positions: positions,
+      material: material || undefined, // use default material if no better one
+      width: width,
+      id: polylines
+    });
+
+    this.setReferenceForPicking(layer, feature, polylines);
+    return this.addTextStyle(layer, feature, olGeometry, olStyle, polylines);
+  }
 };
 
 

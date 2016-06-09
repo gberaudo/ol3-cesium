@@ -456,7 +456,7 @@ olcs.core.ol4326CoordinateToCesiumCartesian = function(coordinate) {
 /**
  * Convert an array of 2D or 3D OpenLayers coordinates to Cesium.
  * @param {Array.<!ol.Coordinate>} coordinates Ol3 coordinates.
- * @return {!Array.<Cesium.Cartesian3>} Cesium cartesian coordinates
+ * @return {!Array.<!Cesium.Cartesian3>} Cesium cartesian coordinates
  * @api
  */
 olcs.core.ol4326CoordinateArrayToCsCartesians = function(coordinates) {
