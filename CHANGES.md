@@ -1,5 +1,10 @@
 # Changelog
 
+# v1.23 -
+
+* Changes
+  * Port to OpenLayers 3.20.0.
+
 # v 1.22 - 2016-12-02
 
 * Changes
