@@ -1,4 +1,4 @@
-goog.provide('olcs.core');
+goog.module('olcs.core');
 
 goog.require('goog.asserts');
 goog.require('ol.layer.Tile');
@@ -16,7 +16,7 @@ goog.require('olcs.core.OLImageryProvider');
  * @return {!Cesium.Cartesian2} the pixel size
  * @api
  */
-olcs.core.computePixelSizeAtCoordinate = function(scene, target) {
+exports.computePixelSizeAtCoordinate = function(scene, target) {
   const camera = scene.camera;
   const canvas = scene.canvas;
   const frustum = camera.frustum;
@@ -36,8 +36,8 @@ olcs.core.computePixelSizeAtCoordinate = function(scene, target) {
  * @return {Array<Cesium.Cartographic>} bottom left and top right
  * coordinates of the box
  */
-olcs.core.computeBoundingBoxAtTarget = function(scene, target, amount) {
-  const pixelSize = olcs.core.computePixelSizeAtCoordinate(scene, target);
+exports.computeBoundingBoxAtTarget = function(scene, target, amount) {
+  const pixelSize = exports.computePixelSizeAtCoordinate(scene, target);
   const transform = Cesium.Transforms.eastNorthUpToFixedFrame(target);
 
   const bottomLeft = Cesium.Matrix4.multiplyByPoint(
@@ -61,7 +61,7 @@ olcs.core.computeBoundingBoxAtTarget = function(scene, target, amount) {
  * @param {number} height
  * @api
  */
-olcs.core.applyHeightOffsetToGeometry = function(geometry, height) {
+exports.applyHeightOffsetToGeometry = function(geometry, height) {
   geometry.applyTransform((input, output, stride) => {
     goog.asserts.assert(input === output);
     if (stride !== undefined && stride >= 3) {
@@ -82,7 +82,7 @@ olcs.core.applyHeightOffsetToGeometry = function(geometry, height) {
  * @param {olcsx.core.RotateAroundAxisOption=} opt_options
  * @api
  */
-olcs.core.rotateAroundAxis = function(camera, angle, axis, transform,
+exports.rotateAroundAxis = function(camera, angle, axis, transform,
     opt_options) {
   const clamp = Cesium.Math.clamp;
   const defaultValue = Cesium.defaultValue;
@@ -128,11 +128,11 @@ olcs.core.rotateAroundAxis = function(camera, angle, axis, transform,
  * @param {olcsx.core.RotateAroundAxisOption=} opt_options
  * @api
  */
-olcs.core.setHeadingUsingBottomCenter = function(scene, heading,
+exports.setHeadingUsingBottomCenter = function(scene, heading,
     bottomCenter, opt_options) {
   const camera = scene.camera;
   // Compute the camera position to zenith quaternion
-  const angleToZenith = olcs.core.computeAngleToZenith(scene, bottomCenter);
+  const angleToZenith = exports.computeAngleToZenith(scene, bottomCenter);
   const axis = camera.right;
   const quaternion = Cesium.Quaternion.fromAxisAngle(axis, angleToZenith);
   const rotation = Cesium.Matrix3.fromQuaternion(quaternion);
@@ -146,7 +146,7 @@ olcs.core.setHeadingUsingBottomCenter = function(scene, heading,
 
   // Actually rotate around the zenith normal
   const transform = Cesium.Matrix4.fromTranslation(zenith);
-  const rotateAroundAxis = olcs.core.rotateAroundAxis;
+  const rotateAroundAxis = exports.rotateAroundAxis;
   rotateAroundAxis(camera, heading, zenith, transform, opt_options);
 };
 
@@ -158,7 +158,7 @@ olcs.core.setHeadingUsingBottomCenter = function(scene, heading,
  * @return {!Cesium.Cartesian3|undefined}
  * @api
  */
-olcs.core.pickOnTerrainOrEllipsoid = function(scene, pixel) {
+exports.pickOnTerrainOrEllipsoid = function(scene, pixel) {
   const ray = scene.camera.getPickRay(pixel);
   const target = scene.globe.pick(ray, scene);
   return target || scene.camera.pickEllipsoid(pixel);
@@ -171,11 +171,11 @@ olcs.core.pickOnTerrainOrEllipsoid = function(scene, pixel) {
  * @return {!Cesium.Cartesian3|undefined}
  * @api
  */
-olcs.core.pickBottomPoint = function(scene) {
+exports.pickBottomPoint = function(scene) {
   const canvas = scene.canvas;
   const bottom = new Cesium.Cartesian2(
       canvas.clientWidth / 2, canvas.clientHeight);
-  return olcs.core.pickOnTerrainOrEllipsoid(scene, bottom);
+  return exports.pickOnTerrainOrEllipsoid(scene, bottom);
 };
 
 
@@ -185,12 +185,12 @@ olcs.core.pickBottomPoint = function(scene) {
  * @return {!Cesium.Cartesian3|undefined}
  * @api
  */
-olcs.core.pickCenterPoint = function(scene) {
+exports.pickCenterPoint = function(scene) {
   const canvas = scene.canvas;
   const center = new Cesium.Cartesian2(
       canvas.clientWidth / 2,
       canvas.clientHeight / 2);
-  return olcs.core.pickOnTerrainOrEllipsoid(scene, center);
+  return exports.pickOnTerrainOrEllipsoid(scene, center);
 };
 
 
@@ -202,7 +202,7 @@ olcs.core.pickCenterPoint = function(scene) {
  * @return {number|undefined}
  * @api
  */
-olcs.core.computeSignedTiltAngleOnGlobe = function(scene) {
+exports.computeSignedTiltAngleOnGlobe = function(scene) {
   const camera = scene.camera;
   const ray = new Cesium.Ray(camera.position, camera.direction);
   let target = scene.globe.pick(ray, scene);
@@ -223,7 +223,7 @@ olcs.core.computeSignedTiltAngleOnGlobe = function(scene) {
   const normal = new Cesium.Cartesian3();
   Cesium.Ellipsoid.WGS84.geocentricSurfaceNormal(target, normal);
 
-  const angleBetween = olcs.core.signedAngleBetween;
+  const angleBetween = exports.signedAngleBetween;
   const angle = angleBetween(camera.direction, normal, camera.right) - Math.PI;
   return Cesium.Math.convertLongitudeRange(angle);
 };
@@ -234,7 +234,7 @@ olcs.core.computeSignedTiltAngleOnGlobe = function(scene) {
  * @param {!Cesium.Scene} scene
  * @return {!Cesium.Ray}
  */
-olcs.core.bottomFovRay = function(scene) {
+exports.bottomFovRay = function(scene) {
   const camera = scene.camera;
   const fovy2 = camera.frustum.fovy / 2;
   const direction = camera.direction;
@@ -253,7 +253,7 @@ olcs.core.bottomFovRay = function(scene) {
  * @param {!Cesium.Cartesian3} normal Normal to test orientation against.
  * @return {number}
  */
-olcs.core.signedAngleBetween = function(first, second, normal) {
+exports.signedAngleBetween = function(first, second, normal) {
   // We are using the dot for the angle.
   // Then the cross and the dot for the sign.
   const a = new Cesium.Cartesian3();
@@ -285,7 +285,7 @@ olcs.core.signedAngleBetween = function(first, second, normal) {
  * @return {number}
  * @api
  */
-olcs.core.computeAngleToZenith = function(scene, pivot) {
+exports.computeAngleToZenith = function(scene, pivot) {
   // This angle is the sum of the angles 'fy' and 'a', which are defined
   // using the pivot point and its surface normal.
   //        Zenith |    camera
@@ -295,7 +295,7 @@ olcs.core.computeAngleToZenith = function(scene, pivot) {
   //              \|/pivot
   const camera = scene.camera;
   const fy = camera.frustum.fovy / 2;
-  const ray = olcs.core.bottomFovRay(scene);
+  const ray = exports.bottomFovRay(scene);
   const direction = Cesium.Cartesian3.clone(ray.direction);
   Cesium.Cartesian3.negate(direction, direction);
 
@@ -305,7 +305,7 @@ olcs.core.computeAngleToZenith = function(scene, pivot) {
   const left = new Cesium.Cartesian3();
   Cesium.Cartesian3.negate(camera.right, left);
 
-  const a = olcs.core.signedAngleBetween(normal, direction, left);
+  const a = exports.signedAngleBetween(normal, direction, left);
   return a + fy;
 };
 
@@ -318,7 +318,7 @@ olcs.core.computeAngleToZenith = function(scene, pivot) {
  * @param {Cesium.Globe=} opt_globe
  * @api
  */
-olcs.core.lookAt = function(camera, target, opt_globe) {
+exports.lookAt = function(camera, target, opt_globe) {
   if (opt_globe) {
     const height = opt_globe.getHeight(target);
     target.height = height || 0;
@@ -342,7 +342,7 @@ olcs.core.lookAt = function(camera, target, opt_globe) {
  * @return {Cesium.Rectangle} The corresponding Cesium rectangle.
  * @api
  */
-olcs.core.extentToRectangle = function(extent, projection) {
+exports.extentToRectangle = function(extent, projection) {
   if (extent && projection) {
     const ext = ol.proj.transformExtent(extent, projection, 'EPSG:4326');
     return Cesium.Rectangle.fromDegrees(ext[0], ext[1], ext[2], ext[3]);
@@ -360,7 +360,7 @@ olcs.core.extentToRectangle = function(extent, projection) {
  * @return {?Cesium.ImageryLayer} null if not possible (or supported)
  * @api
  */
-olcs.core.tileLayerToImageryLayer = function(olLayer, viewProj) {
+exports.tileLayerToImageryLayer = function(olLayer, viewProj) {
   if (!(olLayer instanceof ol.layer.Tile)) {
     return null;
   }
@@ -386,7 +386,7 @@ olcs.core.tileLayerToImageryLayer = function(olLayer, viewProj) {
     const is3857 = projection === ol.proj.get('EPSG:3857');
     const is4326 = projection === ol.proj.get('EPSG:4326');
     if (is3857 || is4326) {
-      provider = new olcs.core.OLImageryProvider(source, viewProj);
+      provider = new exports.OLImageryProvider(source, viewProj);
     } else {
       return null;
     }
@@ -401,7 +401,7 @@ olcs.core.tileLayerToImageryLayer = function(olLayer, viewProj) {
 
   const ext = olLayer.getExtent();
   if (ext && viewProj) {
-    layerOptions.rectangle = olcs.core.extentToRectangle(ext, viewProj);
+    layerOptions.rectangle = exports.extentToRectangle(ext, viewProj);
   }
 
   const cesiumLayer = new Cesium.ImageryLayer(provider, layerOptions);
@@ -416,7 +416,7 @@ olcs.core.tileLayerToImageryLayer = function(olLayer, viewProj) {
  * @param {!Cesium.ImageryLayer} csLayer
  * @api
  */
-olcs.core.updateCesiumLayerProperties = function(olLayer, csLayer) {
+exports.updateCesiumLayerProperties = function(olLayer, csLayer) {
   const opacity = olLayer.getOpacity();
   if (opacity !== undefined) {
     csLayer.alpha = opacity;
@@ -434,7 +434,7 @@ olcs.core.updateCesiumLayerProperties = function(olLayer, csLayer) {
  * @return {!Cesium.Cartesian3} Cesium cartesian coordinate
  * @api
  */
-olcs.core.ol4326CoordinateToCesiumCartesian = function(coordinate) {
+exports.ol4326CoordinateToCesiumCartesian = function(coordinate) {
   const coo = coordinate;
   return coo.length > 2 ?
       Cesium.Cartesian3.fromDegrees(coo[0], coo[1], coo[2]) :
@@ -448,9 +448,9 @@ olcs.core.ol4326CoordinateToCesiumCartesian = function(coordinate) {
  * @return {!Array.<Cesium.Cartesian3>} Cesium cartesian coordinates
  * @api
  */
-olcs.core.ol4326CoordinateArrayToCsCartesians = function(coordinates) {
+exports.ol4326CoordinateArrayToCsCartesians = function(coordinates) {
   goog.asserts.assert(coordinates !== null);
-  const toCartesian = olcs.core.ol4326CoordinateToCesiumCartesian;
+  const toCartesian = exports.ol4326CoordinateToCesiumCartesian;
   const cartesians = [];
   for (let i = 0; i < coordinates.length; ++i) {
     cartesians.push(toCartesian(coordinates[i]));
@@ -469,7 +469,7 @@ olcs.core.ol4326CoordinateArrayToCsCartesians = function(coordinates) {
  * @template T
  * @api
  */
-olcs.core.olGeometryCloneTo4326 = function(geometry, projection) {
+exports.olGeometryCloneTo4326 = function(geometry, projection) {
   goog.asserts.assert(projection);
 
   const proj4326 = ol.proj.get('EPSG:4326');
@@ -490,7 +490,7 @@ olcs.core.olGeometryCloneTo4326 = function(geometry, projection) {
  * @return {!Cesium.Color}
  * @api
  */
-olcs.core.convertColorToCesium = function(olColor) {
+exports.convertColorToCesium = function(olColor) {
   olColor = olColor || 'black';
   if (Array.isArray(olColor)) {
     return new Cesium.Color(
@@ -512,7 +512,7 @@ olcs.core.convertColorToCesium = function(olColor) {
  * @return {!olcsx.core.CesiumUrlDefinition}
  * @api
  */
-olcs.core.convertUrlToCesium = function(url) {
+exports.convertUrlToCesium = function(url) {
   let subdomains = '';
   const re = /\{(\d|[a-z])-(\d|[a-z])\}/;
   const match = re.exec(url);

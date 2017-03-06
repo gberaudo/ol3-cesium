@@ -2,7 +2,7 @@
 // https://github.com/TerriaJS/terriajs/blob/
 // ebd382a8278a817fce316730d9e459bbb9b829e9/lib/Models/Cesium.js
 
-goog.provide('olcs.AutoRenderLoop');
+goog.module('olcs.AutoRenderLoop');
 
 
 
@@ -12,7 +12,7 @@ goog.provide('olcs.AutoRenderLoop');
  * @param {boolean} debug
  * @struct
  */
-olcs.AutoRenderLoop = function(ol3d, debug) {
+exports = function(ol3d, debug) {
   this.ol3d = ol3d;
   this.scene_ = ol3d.getCesiumScene();
   this.verboseRendering = debug;
@@ -57,7 +57,7 @@ olcs.AutoRenderLoop = function(ol3d, debug) {
  * @param {boolean} capture
  * @private
  */
-olcs.AutoRenderLoop.prototype.repaintOn_ = function(key, capture) {
+exports.prototype.repaintOn_ = function(key, capture) {
   const canvas = this.scene_.canvas;
   canvas.addEventListener(key, this._boundNotifyRepaintRequired, capture);
 };
@@ -68,7 +68,7 @@ olcs.AutoRenderLoop.prototype.repaintOn_ = function(key, capture) {
  * @param {boolean} capture
  * @private
  */
-olcs.AutoRenderLoop.prototype.removeRepaintOn_ = function(key, capture) {
+exports.prototype.removeRepaintOn_ = function(key, capture) {
   const canvas = this.scene_.canvas;
   canvas.removeEventListener(key, this._boundNotifyRepaintRequired, capture);
 };
@@ -77,7 +77,7 @@ olcs.AutoRenderLoop.prototype.removeRepaintOn_ = function(key, capture) {
 /**
  * Enable.
  */
-olcs.AutoRenderLoop.prototype.enable = function() {
+exports.prototype.enable = function() {
   this.repaintOn_('mousemove', false);
   this.repaintOn_('mousedown', false);
   this.repaintOn_('mouseup', false);
@@ -152,7 +152,7 @@ olcs.AutoRenderLoop.prototype.enable = function() {
 /**
  * Disable.
  */
-olcs.AutoRenderLoop.prototype.disable = function() {
+exports.prototype.disable = function() {
   if (!!this._removePostRenderListener) {
     this._removePostRenderListener();
     this._removePostRenderListener = undefined;
@@ -191,7 +191,7 @@ olcs.AutoRenderLoop.prototype.disable = function() {
 /**
  * @param {number} date
  */
-olcs.AutoRenderLoop.prototype.postRender = function(date) {
+exports.prototype.postRender = function(date) {
   // We can safely stop rendering when:
   //  - the camera position hasn't changed in over a second,
   //  - there are no tiles waiting to load, and
@@ -235,7 +235,7 @@ olcs.AutoRenderLoop.prototype.postRender = function(date) {
  * Force a restart of the render loop.
  * @api
  */
-olcs.AutoRenderLoop.prototype.restartRenderLoop = function() {
+exports.prototype.restartRenderLoop = function() {
   this.notifyRepaintRequired();
 };
 
@@ -243,7 +243,7 @@ olcs.AutoRenderLoop.prototype.restartRenderLoop = function() {
 /**
  * Notifies the viewer that a repaint is required.
  */
-olcs.AutoRenderLoop.prototype.notifyRepaintRequired = function() {
+exports.prototype.notifyRepaintRequired = function() {
   if (this.verboseRendering && this.stoppedRendering) {
     console.log(`starting rendering @ ${Date.now()}`);
   }
@@ -258,6 +258,6 @@ olcs.AutoRenderLoop.prototype.notifyRepaintRequired = function() {
  * @param {boolean} debug
  * @api
  */
-olcs.AutoRenderLoop.prototype.setDebug = function(debug) {
+exports.prototype.setDebug = function(debug) {
   this.verboseRendering = debug;
 };

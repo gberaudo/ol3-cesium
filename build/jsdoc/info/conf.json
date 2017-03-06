@@ -10,6 +10,7 @@
         "includePattern": "\\.js$"
     },
     "plugins": [
+        "build/jsdoc/info/conf.json",
         "build/jsdoc/info/api-plugin",
         "build/jsdoc/info/define-plugin"
     ]

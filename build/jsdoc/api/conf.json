@@ -16,6 +16,7 @@
     },
     "plugins": [
         "node_modules/jsdoc/plugins/markdown",
+        "build/jsdoc/info/module-plugin.js",
         "build/jsdoc/api/plugins/inheritdoc",
         "build/jsdoc/api/plugins/interface",
         "build/jsdoc/api/plugins/typedefs",

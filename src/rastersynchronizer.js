@@ -1,4 +1,4 @@
-goog.provide('olcs.RasterSynchronizer');
+goog.module('olcs.RasterSynchronizer');
 
 goog.require('goog.asserts');
 goog.require('ol.array');
@@ -18,7 +18,7 @@ goog.require('olcs.core');
  * @api
  * @struct
  */
-olcs.RasterSynchronizer = function(map, scene) {
+exports = function(map, scene) {
   /**
    * @type {!Cesium.ImageryLayerCollection}
    * @private
@@ -33,13 +33,13 @@ olcs.RasterSynchronizer = function(map, scene) {
 
   olcs.AbstractSynchronizer.call(this, map, scene);
 };
-ol.inherits(olcs.RasterSynchronizer, olcs.AbstractSynchronizer);
+ol.inherits(exports, olcs.AbstractSynchronizer);
 
 
 /**
  * @inheritDoc
  */
-olcs.RasterSynchronizer.prototype.addCesiumObject = function(object) {
+exports.prototype.addCesiumObject = function(object) {
   this.cesiumLayers_.add(object);
   this.ourLayers_.add(object);
 };
@@ -48,7 +48,7 @@ olcs.RasterSynchronizer.prototype.addCesiumObject = function(object) {
 /**
  * @inheritDoc
  */
-olcs.RasterSynchronizer.prototype.destroyCesiumObject = function(object) {
+exports.prototype.destroyCesiumObject = function(object) {
   object.destroy();
 };
 
@@ -56,7 +56,7 @@ olcs.RasterSynchronizer.prototype.destroyCesiumObject = function(object) {
 /**
  * @inheritDoc
  */
-olcs.RasterSynchronizer.prototype.removeSingleCesiumObject = function(object, destroy) {
+exports.prototype.removeSingleCesiumObject = function(object, destroy) {
   this.cesiumLayers_.remove(object, destroy);
   this.ourLayers_.remove(object, false);
 };
@@ -65,7 +65,7 @@ olcs.RasterSynchronizer.prototype.removeSingleCesiumObject = function(object, de
 /**
  * @inheritDoc
  */
-olcs.RasterSynchronizer.prototype.removeAllCesiumObjects = function(destroy) {
+exports.prototype.removeAllCesiumObjects = function(destroy) {
   for (let i = 0; i < this.ourLayers_.length; ++i) {
     this.cesiumLayers_.remove(this.ourLayers_.get(i), destroy);
   }
@@ -84,7 +84,7 @@ olcs.RasterSynchronizer.prototype.removeAllCesiumObjects = function(destroy) {
  * (or supported)
  * @protected
  */
-olcs.RasterSynchronizer.prototype.convertLayerToCesiumImageries = function(olLayer, viewProj) {
+exports.prototype.convertLayerToCesiumImageries = function(olLayer, viewProj) {
   const result = olcs.core.tileLayerToImageryLayer(olLayer, viewProj);
   return result ? [result] : null;
 };
@@ -93,7 +93,7 @@ olcs.RasterSynchronizer.prototype.convertLayerToCesiumImageries = function(olLay
 /**
  * @inheritDoc
  */
-olcs.RasterSynchronizer.prototype.createSingleLayerCounterparts = function(olLayer) {
+exports.prototype.createSingleLayerCounterparts = function(olLayer) {
   const viewProj = this.view.getProjection();
   const cesiumObjects = this.convertLayerToCesiumImageries(olLayer, viewProj);
   if (cesiumObjects) {
@@ -143,7 +143,7 @@ olcs.RasterSynchronizer.prototype.createSingleLayerCounterparts = function(olLay
  * @override
  * @protected
  */
-olcs.RasterSynchronizer.prototype.orderLayers = function() {
+exports.prototype.orderLayers = function() {
   const layers = [];
   const zIndices = {};
   const queue = [this.mapLayerGroup];
@@ -179,6 +179,6 @@ olcs.RasterSynchronizer.prototype.orderLayers = function() {
 /**
  * @param {Cesium.ImageryLayer} counterpart
  */
-olcs.RasterSynchronizer.prototype.raiseToTop = function(counterpart) {
+exports.prototype.raiseToTop = function(counterpart) {
   this.cesiumLayers_.raiseToTop(counterpart);
 };

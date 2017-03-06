@@ -1,4 +1,4 @@
-goog.provide('olcs.Camera');
+goog.module('olcs.Camera');
 
 goog.require('goog.asserts');
 goog.require('ol.Observable');
@@ -18,7 +18,7 @@ goog.require('olcs.core');
  * @api
  * @struct
  */
-olcs.Camera = function(scene, map) {
+exports = function(scene, map) {
   /**
    * @type {!Cesium.Scene}
    * @private
@@ -53,13 +53,13 @@ olcs.Camera = function(scene, map) {
    * @type {!ol.TransformFunction}
    * @private
    */
-  this.toLonLat_ = olcs.Camera.identityProjection;
+  this.toLonLat_ = exports.identityProjection;
 
   /**
    * @type {!ol.TransformFunction}
    * @private
    */
-  this.fromLonLat_ = olcs.Camera.identityProjection;
+  this.fromLonLat_ = exports.identityProjection;
 
   /**
    * 0 -- topdown, PI/2 -- the horizon
@@ -100,7 +100,7 @@ olcs.Camera = function(scene, map) {
  * @param {number=} opt_dimension Dimension.
  * @return {Array.<number>} Input coordinate array (same array as input).
  */
-olcs.Camera.identityProjection = function(input, opt_output, opt_dimension) {
+exports.identityProjection = function(input, opt_output, opt_dimension) {
   const dim = opt_dimension || input.length;
   if (opt_output) {
     for (let i = 0; i < dim; ++i) {
@@ -115,7 +115,7 @@ olcs.Camera.identityProjection = function(input, opt_output, opt_dimension) {
  * @param {?ol.View} view New view to use.
  * @private
  */
-olcs.Camera.prototype.setView_ = function(view) {
+exports.prototype.setView_ = function(view) {
   if (this.view_) {
     ol.Observable.unByKey(this.viewListenKey_);
     this.viewListenKey_ = null;
@@ -135,8 +135,8 @@ olcs.Camera.prototype.setView_ = function(view) {
 
     this.readFromView();
   } else {
-    this.toLonLat_ = olcs.Camera.identityProjection;
-    this.fromLonLat_ = olcs.Camera.identityProjection;
+    this.toLonLat_ = exports.identityProjection;
+    this.fromLonLat_ = exports.identityProjection;
   }
 };
 
@@ -145,7 +145,7 @@ olcs.Camera.prototype.setView_ = function(view) {
  * @param {?} e
  * @private
  */
-olcs.Camera.prototype.handleViewEvent_ = function(e) {
+exports.prototype.handleViewEvent_ = function(e) {
   if (!this.viewUpdateInProgress_) {
     this.readFromView();
   }
@@ -156,7 +156,7 @@ olcs.Camera.prototype.handleViewEvent_ = function(e) {
  * @param {number} heading In radians.
  * @api
  */
-olcs.Camera.prototype.setHeading = function(heading) {
+exports.prototype.setHeading = function(heading) {
   if (!this.view_) {
     return;
   }
@@ -169,7 +169,7 @@ olcs.Camera.prototype.setHeading = function(heading) {
  * @return {number|undefined} Heading in radians.
  * @api
  */
-olcs.Camera.prototype.getHeading = function() {
+exports.prototype.getHeading = function() {
   if (!this.view_) {
     return undefined;
   }
@@ -182,7 +182,7 @@ olcs.Camera.prototype.getHeading = function() {
  * @param {number} tilt In radians.
  * @api
  */
-olcs.Camera.prototype.setTilt = function(tilt) {
+exports.prototype.setTilt = function(tilt) {
   this.tilt_ = tilt;
   this.updateCamera_();
 };
@@ -192,7 +192,7 @@ olcs.Camera.prototype.setTilt = function(tilt) {
  * @return {number} Tilt in radians.
  * @api
  */
-olcs.Camera.prototype.getTilt = function() {
+exports.prototype.getTilt = function() {
   return this.tilt_;
 };
 
@@ -201,7 +201,7 @@ olcs.Camera.prototype.getTilt = function() {
  * @param {number} distance In meters.
  * @api
  */
-olcs.Camera.prototype.setDistance = function(distance) {
+exports.prototype.setDistance = function(distance) {
   this.distance_ = distance;
   this.updateCamera_();
   this.updateView();
@@ -212,7 +212,7 @@ olcs.Camera.prototype.setDistance = function(distance) {
  * @return {number} Distance in meters.
  * @api
  */
-olcs.Camera.prototype.getDistance = function() {
+exports.prototype.getDistance = function() {
   return this.distance_;
 };
 
@@ -222,7 +222,7 @@ olcs.Camera.prototype.getDistance = function() {
  * @param {!ol.Coordinate} center Same projection as the ol.View.
  * @api
  */
-olcs.Camera.prototype.setCenter = function(center) {
+exports.prototype.setCenter = function(center) {
   if (!this.view_) {
     return;
   }
@@ -235,7 +235,7 @@ olcs.Camera.prototype.setCenter = function(center) {
  * @return {ol.Coordinate|undefined} Same projection as the ol.View.
  * @api
  */
-olcs.Camera.prototype.getCenter = function() {
+exports.prototype.getCenter = function() {
   if (!this.view_) {
     return undefined;
   }
@@ -248,7 +248,7 @@ olcs.Camera.prototype.getCenter = function() {
  * @param {!ol.Coordinate} position Same projection as the ol.View.
  * @api
  */
-olcs.Camera.prototype.setPosition = function(position) {
+exports.prototype.setPosition = function(position) {
   if (!this.toLonLat_) {
     return;
   }
@@ -269,7 +269,7 @@ olcs.Camera.prototype.setPosition = function(position) {
  * @return {!ol.Coordinate|undefined} Same projection as the ol.View.
  * @api
  */
-olcs.Camera.prototype.getPosition = function() {
+exports.prototype.getPosition = function() {
   if (!this.fromLonLat_) {
     return undefined;
   }
@@ -289,7 +289,7 @@ olcs.Camera.prototype.getPosition = function() {
  * @param {number} altitude In meters.
  * @api
  */
-olcs.Camera.prototype.setAltitude = function(altitude) {
+exports.prototype.setAltitude = function(altitude) {
   const carto = Cesium.Ellipsoid.WGS84.cartesianToCartographic(
       this.cam_.position);
   carto.height = altitude;
@@ -303,7 +303,7 @@ olcs.Camera.prototype.setAltitude = function(altitude) {
  * @return {number} Altitude in meters.
  * @api
  */
-olcs.Camera.prototype.getAltitude = function() {
+exports.prototype.getAltitude = function() {
   const carto = Cesium.Ellipsoid.WGS84.cartesianToCartographic(
       this.cam_.position);
 
@@ -316,7 +316,7 @@ olcs.Camera.prototype.getAltitude = function() {
  * @param {!ol.Coordinate} position Same projection as the ol.View.
  * @api
  */
-olcs.Camera.prototype.lookAt = function(position) {
+exports.prototype.lookAt = function(position) {
   if (!this.toLonLat_) {
     return;
   }
@@ -335,7 +335,7 @@ olcs.Camera.prototype.lookAt = function(position) {
  * according to the current values of the properties.
  * @private
  */
-olcs.Camera.prototype.updateCamera_ = function() {
+exports.prototype.updateCamera_ = function() {
   if (!this.view_ || !this.toLonLat_) {
     return;
   }
@@ -376,7 +376,7 @@ olcs.Camera.prototype.updateCamera_ = function() {
  * Calculates the values of the properties from the current ol.View state.
  * @api
  */
-olcs.Camera.prototype.readFromView = function() {
+exports.prototype.readFromView = function() {
   if (!this.view_ || !this.toLonLat_) {
     return;
   }
@@ -400,7 +400,7 @@ olcs.Camera.prototype.readFromView = function() {
  * Modifies the center, resolution and rotation properties of the view.
  * @api
  */
-olcs.Camera.prototype.updateView = function() {
+exports.prototype.updateView = function() {
   if (!this.view_ || !this.fromLonLat_) {
     return;
   }
@@ -477,7 +477,7 @@ olcs.Camera.prototype.updateView = function() {
  * Check if the underlying camera state has changed and ensure synchronization.
  * @param {boolean=} opt_dontSync Do not synchronize the view.
  */
-olcs.Camera.prototype.checkCameraChange = function(opt_dontSync) {
+exports.prototype.checkCameraChange = function(opt_dontSync) {
   const old = this.lastCameraViewMatrix_;
   const current = this.cam_.viewMatrix;
 
@@ -496,7 +496,7 @@ olcs.Camera.prototype.checkCameraChange = function(opt_dontSync) {
  * @return {number} The calculated distance.
  * @private
  */
-olcs.Camera.prototype.calcDistanceForResolution_ = function(resolution,
+exports.prototype.calcDistanceForResolution_ = function(resolution,
                                                             latitude) {
   const canvas = this.scene_.canvas;
   const fovy = this.cam_.frustum.fovy; // vertical field of view
@@ -537,7 +537,7 @@ olcs.Camera.prototype.calcDistanceForResolution_ = function(resolution,
  * @return {number} The calculated resolution.
  * @private
  */
-olcs.Camera.prototype.calcResolutionForDistance_ = function(distance,
+exports.prototype.calcResolutionForDistance_ = function(distance,
                                                             latitude) {
   // See the reverse calculation (calcDistanceForResolution_) for details
   const canvas = this.scene_.canvas;

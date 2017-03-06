@@ -1,4 +1,4 @@
-goog.provide('olcs.core.OLImageryProvider');
+goog.module('olcs.core.OLImageryProvider');
 
 goog.require('ol.events');
 goog.require('ol.proj');
@@ -15,7 +15,7 @@ goog.require('ol.proj');
  * @constructor
  * @extends {Cesium.ImageryProvider}
  */
-olcs.core.OLImageryProvider = function(source, opt_fallbackProj) {
+exports = function(source, opt_fallbackProj) {
   // Do not ol.inherit() or call super constructor from
   // Cesium.ImageryProvider since this particular function is a
   // 'non instanciable interface' which throws on instanciation.
@@ -66,7 +66,7 @@ olcs.core.OLImageryProvider = function(source, opt_fallbackProj) {
 
 // definitions of getters that are required to be present
 // in the Cesium.ImageryProvider instance:
-Object.defineProperties(olcs.core.OLImageryProvider.prototype, {
+Object.defineProperties(exports.prototype, {
   'ready': {
     'get': /** @this {olcs.core.OLImageryProvider} */
         function() {return this.ready_;}
@@ -149,7 +149,7 @@ Object.defineProperties(olcs.core.OLImageryProvider.prototype, {
  * Checks if the underlying source is ready and cached required data.
  * @private
  */
-olcs.core.OLImageryProvider.prototype.handleSourceChanged_ = function() {
+exports.prototype.handleSourceChanged_ = function() {
   if (!this.ready_ && this.source_.getState() == 'ready') {
     const proj = this.source_.getProjection();
     this.projection_ = proj ? proj : this.fallbackProj_;
@@ -163,7 +163,7 @@ olcs.core.OLImageryProvider.prototype.handleSourceChanged_ = function() {
     this.rectangle_ = this.tilingScheme_.rectangle;
 
     const credit =
-        olcs.core.OLImageryProvider.createCreditForSource(this.source_);
+        exports.createCreditForSource(this.source_);
     this.credit_ = credit || undefined;
 
     this.ready_ = true;
@@ -177,7 +177,7 @@ olcs.core.OLImageryProvider.prototype.handleSourceChanged_ = function() {
  * @param {!ol.source.Source} source
  * @return {?Cesium.Credit}
  */
-olcs.core.OLImageryProvider.createCreditForSource = function(source) {
+exports.createCreditForSource = function(source) {
   let text = '';
   const attributions = source.getAttributions();
   if (attributions) {
@@ -213,7 +213,7 @@ olcs.core.OLImageryProvider.createCreditForSource = function(source) {
  * @export
  * @override
  */
-olcs.core.OLImageryProvider.prototype.getTileCredits = function(x, y, level) {
+exports.prototype.getTileCredits = function(x, y, level) {
   return undefined;
 };
 
@@ -222,7 +222,7 @@ olcs.core.OLImageryProvider.prototype.getTileCredits = function(x, y, level) {
  * @export
  * @override
  */
-olcs.core.OLImageryProvider.prototype.requestImage = function(x, y, level) {
+exports.prototype.requestImage = function(x, y, level) {
   const tileUrlFunction = this.source_.getTileUrlFunction();
   if (tileUrlFunction && this.projection_) {
 

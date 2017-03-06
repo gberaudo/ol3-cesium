@@ -1,4 +1,4 @@
-goog.provide('olcs.core.VectorLayerCounterpart');
+goog.module('olcs.core.VectorLayerCounterpart');
 
 goog.require('ol.Observable');
 
@@ -10,7 +10,7 @@ goog.require('ol.Observable');
  * @param {!(ol.proj.Projection|string)} layerProjection
  * @param {!Cesium.Scene} scene
  */
-olcs.core.VectorLayerCounterpart = function(layerProjection, scene) {
+exports = function(layerProjection, scene) {
   const billboards = new Cesium.BillboardCollection({scene});
   const primitives = new Cesium.PrimitiveCollection();
 
@@ -38,7 +38,7 @@ olcs.core.VectorLayerCounterpart = function(layerProjection, scene) {
 /**
  * Unlisten.
  */
-olcs.core.VectorLayerCounterpart.prototype.destroy = function() {
+exports.prototype.destroy = function() {
   this.olListenKeys.forEach(ol.Observable.unByKey);
   this.olListenKeys.length = 0;
 };
@@ -47,6 +47,6 @@ olcs.core.VectorLayerCounterpart.prototype.destroy = function() {
 /**
  * @return {!Cesium.Primitive}
  */
-olcs.core.VectorLayerCounterpart.prototype.getRootPrimitive = function() {
+exports.prototype.getRootPrimitive = function() {
   return this.rootCollection_;
 };
