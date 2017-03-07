@@ -5,6 +5,7 @@ else
 endif
 UNAME := $(shell uname)
 SRC_JS_FILES := $(shell find src -type f -name '*.js')
+OL_JS_FILES := $(shell find ol/src -type f -name '*.js')
 EXAMPLES_JS_FILES := $(shell find examples -type f -name '*.js')
 EXAMPLES_HTML_FILES := $(shell find examples -type f -name '*.html')
 EXAMPLES_GEOJSON_FILES := $(shell find examples/data/ -name '*.geojson')
@@ -35,7 +36,7 @@ npm-install: .build/node_modules.timestamp
 
 .PHONY: serve
 serve: npm-install cesium/Build/Cesium/Cesium.js
-	node build/serve.js
+	python -m SimpleHTTPServer 4000
 
 .PHONY: dist
 dist: dist/olcesium.js dist/olcesium-debug.js CHANGES.md
@@ -104,16 +105,64 @@ dist/olcesium-debug.js: build/olcesium-debug.json $(SRC_JS_FILES) Cesium.externs
 
 
 ol/node_modules/rbush/package.json: ol/package.json
-	(cd ol && npm install --production)
+	(cd ol && npm install --production --ignore-scripts)
 
 ol/build/ol.ext/rbush.js: ol/node_modules/rbush/package.json
 	(cd ol && node tasks/build-ext.js)
 
+.PHONY: .build/deps.js
+.build/deps.js:
+	python build/closure/depswriter.py \
+    --root_with_prefix="src ../../src" \
+    --root_with_prefix="ol ../../ol" \
+    --root_with_prefix="ol/build/ol.ext ../../ol/build/ol.ext" \
+    --output_file $@
+
 
 # A sourcemap is prepared, the source is exected to be deployed in 'source' directory
-dist/olcesium.js: build/olcesium.json $(SRC_JS_FILES) Cesium.externs.js build/build.js npm-install ol/build/ol.ext/rbush.js
+dist/olcesium.js: $(SRC_JS_FILES) Cesium.externs.js npm-install ol/build/ol.ext/rbush.js
 	mkdir -p $(dir $@)
-	node build/build.js $< $@
+	java \
+    -server -XX:+TieredCompilation \
+    -jar node_modules/google-closure-compiler/compiler.jar \
+    --define=goog.SEAL_MODULE_EXPORTS=false \
+    --define=goog.DEBUG=false \
+    --define=ol.ENABLE_WEBGL=false \
+    --externs=ol/externs/geojson.js \
+    --externs=ol/externs/proj4js.js \
+    --externs=ol/externs/jquery-1.9.js \
+    --externs=ol/externs/tilejson.js \
+    --externs=ol/externs/esrijson.js \
+    --externs=ol/externs/bingmaps.js \
+    --externs=ol/externs/cartodb.js \
+    --externs=ol/externs/topojson.js \
+    --js=ol/build/ol.ext/pbf.js \
+    --js=ol/build/ol.ext/pixelworks.js \
+    --js=ol/build/ol.ext/rbush.js \
+    --js=ol/build/ol.ext/vectortile.js \
+    --js=ol/externs/olx.js \
+    --js=ol/externs/oli.js \
+    --js=ol/src/**/*.js \
+    --js=goog/**/*.js \
+    --jscomp_error=* \
+    --jscomp_off=lintChecks \
+    --jscomp_off=analyzerChecks \
+    --jscomp_off=extraRequire \
+    --extra_annotation_name=api \
+    --extra_annotation_name=observable \
+    --compilation_level=ADVANCED \
+    --export_local_property_definitions=true \
+    --generate_exports=true \
+    --language_in=ECMASCRIPT6_STRICT \
+    --language_out=ECMASCRIPT5_STRICT \
+    --isolation_mode=IIFE \
+    --source_map_format=V3 \
+    --use_types_for_optimization=true \
+    --warning_level=VERBOSE \
+    --create_source_map=dist/build.js.map \
+    --output_manifest=dist/manifest.MF \
+    --js_output_file=$@
+
 	$(SEDI) 's!$(shell pwd)/dist!source!g' dist/olcesium.js.map
 	$(SEDI) 's!$(shell pwd)!source!g' dist/olcesium.js.map
 #	echo '//# sourceMappingURL=olcesium.js.map' >> dist/olcesium.js

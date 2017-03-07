@@ -16,7 +16,7 @@
     "htmlparser2": "3.9.2"
   },
   "devDependencies": {
-    "closure-util": "git://github.com/camptocamp/closure-util#00c2b9b",
+    "google-closure-compiler": "20170218.0.0",
     "@mapbox/geojsonhint": "2.0.1",
     "fs-extra": "2.0.0",
     "jsdoc": "~3.4.0",
