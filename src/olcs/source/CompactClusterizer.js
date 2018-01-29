@@ -77,7 +77,7 @@ exports = class {
           children[resolution] = values.map(childFeature => childFeature.getId());
         }
       }
-      const rindex = clone.get('resolution_index');
+      const rindex = /** @type{number} */ (clone.get('resolution_index'));
       if (rindex != this.resolutionSteps_.length - 1) {
         clone.set('resolution', this.resolutionSteps_[rindex + 1]);
       } else {
@@ -91,7 +91,7 @@ exports = class {
 
 
   /**
-   * @return {Array<ol.Feature>}
+   * @return {olcs.source.CompactClusterizer}
    */
   clusterize() {
     let featuresAtStep = this.features_; // all features
@@ -102,7 +102,7 @@ exports = class {
       featuresAtStep = this.clusterFeaturesAtStep_(featuresAtStep, index);
     }, this);
 
-    return this.features_;
+    return this;
   }
 
 

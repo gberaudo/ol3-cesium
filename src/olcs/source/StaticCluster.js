@@ -7,14 +7,13 @@ goog.require('ol.source.Vector');
 
 exports = class extends ol.source.Vector {
 /**
- * @param {olx.source.Vector} options
- * @export
+ * @param {olx.source.VectorOptions} options
+ * @param {Array<ol.Feature>} features
  */
   constructor(options, features) {
     super(options);
     /**
      * @type {Array<ol.Feature>}
-     * @export
      */
     this.clusteredFeatures = features;
 
@@ -25,7 +24,7 @@ exports = class extends ol.source.Vector {
    */
   loadFeatures(extent, resolution, projection) {
     this.clear(true);
-    const visibleFeatures = this.clusteredFeatures.filter(f => f.get('resolution') >= resolution);
+    const visibleFeatures = this.clusteredFeatures.filter(f => /** @type{number} */ (f.get('resolution')) >= resolution);
     this.addFeatures(visibleFeatures);
   }
 };
